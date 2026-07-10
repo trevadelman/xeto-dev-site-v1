@@ -1,0 +1,69 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import LibCard from "../components/LibCard.astro";
+
+const libs = await getCollection("libs");
+const featured = libs.filter((l) => l.data.featured);
+---
+
+<BaseLayout title="xeto.dev — the registry for Xeto libraries">
+  <section class="py-14 text-center">
+    <h1 class="mx-auto max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
+      Typed data models, <span class="text-brand">shared</span>.
+    </h1>
+    <p class="mx-auto mt-5 max-w-2xl text-lg text-ink-soft">
+      xeto.dev is the registry for <a
+        href="https://github.com/Project-Haystack/xeto"
+        class="text-brand underline decoration-brand-soft underline-offset-2"
+        >Xeto</a
+      > libraries — browse, explore, and (soon) publish and install typed data
+      specifications for your domain.
+    </p>
+    <div class="mt-8 flex justify-center gap-4">
+      <a
+        href="/libs"
+        class="rounded-lg bg-brand px-5 py-2.5 font-medium text-white hover:bg-brand-soft"
+      >
+        Browse libraries
+      </a>
+      <a
+        href="/docs"
+        class="rounded-lg border border-line px-5 py-2.5 font-medium text-ink hover:border-brand hover:text-brand"
+      >
+        What is Xeto?
+      </a>
+    </div>
+  </section>
+
+  <section class="py-10">
+    <h2 class="text-xl font-semibold">Featured libraries</h2>
+    <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {featured.map((lib) => <LibCard lib={lib} />)}
+    </div>
+  </section>
+
+  <section class="grid gap-4 py-10 sm:grid-cols-3">
+    <div class="rounded-lg border border-line bg-paper-soft p-5">
+      <h3 class="font-semibold text-brand">Browse</h3>
+      <p class="mt-2 text-sm text-ink-soft">
+        Find libraries by domain — smart buildings today, more industries as the
+        ecosystem grows.
+      </p>
+    </div>
+    <div class="rounded-lg border border-line bg-paper-soft p-5">
+      <h3 class="font-semibold text-brand">Explore</h3>
+      <p class="mt-2 text-sm text-ink-soft">
+        Dig into every spec, slot, and doc string with the built-in explorer — no
+        install required.
+      </p>
+    </div>
+    <div class="rounded-lg border border-line bg-paper-soft p-5">
+      <h3 class="font-semibold text-brand">Install</h3>
+      <p class="mt-2 text-sm text-ink-soft">
+        Pull any library into your own namespace with the Xeto CLI.
+        <span class="text-ink-soft/70">(coming soon)</span>
+      </p>
+    </div>
+  </section>
+</BaseLayout>

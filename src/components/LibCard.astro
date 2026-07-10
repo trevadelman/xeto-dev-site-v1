@@ -1,0 +1,32 @@
+---
+import type { CollectionEntry } from "astro:content";
+
+interface Props {
+  lib: CollectionEntry<"libs">;
+}
+
+const { lib } = Astro.props;
+const { name, version, summary, domains } = lib.data;
+---
+
+<a
+  href={`/libs/${lib.id}`}
+  class="group block rounded-lg border border-line p-5 transition hover:border-brand"
+>
+  <div class="flex items-baseline justify-between">
+    <h3 class="font-mono font-semibold group-hover:text-brand">{name}</h3>
+    <span class="text-xs text-ink-soft">v{version}</span>
+  </div>
+  <p class="mt-2 line-clamp-3 text-sm text-ink-soft">{summary}</p>
+  {
+    domains.length > 0 && (
+      <div class="mt-3 flex flex-wrap gap-1.5">
+        {domains.map((d) => (
+          <span class="rounded-full bg-brand-faint px-2.5 py-0.5 text-xs text-brand">
+            {d}
+          </span>
+        ))}
+      </div>
+    )
+  }
+</a>

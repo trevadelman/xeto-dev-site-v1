@@ -1,0 +1,10 @@
+{
+  "name": "ph.points",
+  "version": "1.0.0",
+  "summary": "Standardized point types for HVAC and building systems — sensors, commands, and setpoints with typed units and enumerations.",
+  "domains": [
+    "smart-buildings"
+  ],
+  "github": "https://github.com/Project-Haystack/xeto",
+  "featured": true
+}

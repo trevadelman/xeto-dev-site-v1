@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/* xeto.dev theme — brand purple #6846cb from the Xeto logo */
+@theme {
+  --color-brand: #6846cb;
+  --color-brand-soft: #8b6fe0;
+  --color-brand-faint: #efeafc;
+
+  --color-paper: #ffffff;
+  --color-paper-soft: #f7f6fb;
+  --color-ink: #1c1a26;
+  --color-ink-soft: #5d5a6e;
+  --color-line: #e5e2ef;
+}
+
+/* dark theme overrides driven by [data-theme="dark"] on <html> */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+[data-theme="dark"] {
+  --color-brand: #8b6fe0;
+  --color-brand-soft: #a78ff0;
+  --color-brand-faint: #2a2140;
+
+  --color-paper: #14121c;
+  --color-paper-soft: #1c1927;
+  --color-ink: #edeaf6;
+  --color-ink-soft: #a29dba;
+  --color-line: #2e2a3e;
+}
+
+html {
+  color-scheme: light;
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+}
+
+code {
+  background-color: var(--color-paper-soft);
+  border: 1px solid var(--color-line);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.875em;
+}

@@ -1,0 +1,5 @@
+{
+  "slug": "core",
+  "name": "Core & System",
+  "blurb": "The foundation libraries every Xeto namespace builds on — the sys type system, components, files, and API definitions."
+}

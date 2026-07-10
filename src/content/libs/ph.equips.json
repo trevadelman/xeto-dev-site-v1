@@ -1,0 +1,9 @@
+{
+  "name": "ph.equips",
+  "version": "1.0.0",
+  "summary": "Equipment entity types — AHUs, VAVs, chillers, boilers, meters, and the rest of the mechanical world as typed specs.",
+  "domains": [
+    "smart-buildings"
+  ],
+  "github": "https://github.com/Project-Haystack/xeto"
+}

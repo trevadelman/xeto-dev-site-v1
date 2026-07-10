@@ -1,0 +1,9 @@
+{
+  "name": "ph.elec",
+  "version": "1.0.0",
+  "summary": "Electrical system modeling — panels, circuits, meters, and power-quality points.",
+  "domains": [
+    "smart-buildings"
+  ],
+  "github": "https://github.com/Project-Haystack/xeto"
+}

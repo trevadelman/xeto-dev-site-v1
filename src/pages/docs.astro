@@ -1,0 +1,63 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Docs — xeto.dev">
+  <h1 class="text-3xl font-bold tracking-tight">What is Xeto?</h1>
+
+  <div class="mt-6 max-w-3xl space-y-5 text-ink-soft">
+    <p>
+      <strong class="text-ink">Xeto</strong> ("extensible explicitly typed
+      objects") is a language for defining typed data specifications. A Xeto
+      <em>spec</em> describes the shape of data — its slots, types, constraints,
+      and documentation — and a Xeto <em>library</em> packages related specs
+      together with versioning and dependencies.
+    </p>
+    <p>
+      Think of it like a type system for the data layer: instead of every
+      project inventing its own JSON conventions, domains share libraries of
+      well-defined types that tooling can validate against, generate from, and
+      document automatically.
+    </p>
+    <p>
+      Xeto grew out of
+      <a
+        href="https://project-haystack.org"
+        class="text-brand underline decoration-brand-soft underline-offset-2"
+        >Project Haystack</a
+      >
+      and the smart-buildings world, where it types everything from HVAC points
+      to ASHRAE control sequences — but the language itself is domain-neutral.
+    </p>
+  </div>
+
+  <h2 class="mt-12 text-xl font-semibold">A taste of the language</h2>
+  <pre
+    class="mt-4 max-w-3xl overflow-x-auto rounded-lg border border-line bg-paper-soft p-5 text-sm"><code>// A person with typed slots
+Person: Dict &#123;
+  name: Str
+  age: Int
+  email: Str?        // maybe type — optional
+&#125;
+
+// Instance data validated against the spec
+@brian: Person &#123;name: "Brian", age: 52&#125;</code></pre>
+
+  <h2 class="mt-12 text-xl font-semibold">Learn more</h2>
+  <ul class="mt-4 max-w-3xl space-y-2 text-ink-soft">
+    <li>
+      <a
+        href="https://github.com/Project-Haystack/xeto"
+        class="text-brand underline decoration-brand-soft underline-offset-2"
+        >Xeto on GitHub</a
+      > — source, core libraries, and language docs
+    </li>
+    <li>
+      <a
+        href="/explorer/"
+        class="text-brand underline decoration-brand-soft underline-offset-2"
+        >The explorer</a
+      > — browse every spec in the registry libraries interactively
+    </li>
+  </ul>
+</BaseLayout>

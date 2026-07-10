@@ -1,0 +1,5 @@
+{
+  "slug": "smart-buildings",
+  "name": "Smart Buildings",
+  "blurb": "Typed data models for the built environment — equipment, points, electrical systems, and control sequences built on Project Haystack semantics."
+}

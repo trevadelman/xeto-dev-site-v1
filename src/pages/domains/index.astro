@@ -1,0 +1,37 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const domains = await getCollection("domains");
+const libs = await getCollection("libs");
+const countFor = (slug: string) =>
+  libs.filter((l) => l.data.domains.includes(slug)).length;
+---
+
+<BaseLayout title="Domains — xeto.dev">
+  <h1 class="text-3xl font-bold tracking-tight">Domains</h1>
+  <p class="mt-3 max-w-2xl text-ink-soft">
+    Libraries organized by industry. Each domain collects the typed data models
+    for its world.
+  </p>
+  <div class="mt-8 grid gap-4 sm:grid-cols-2">
+    {
+      domains.map((domain) => (
+        <a
+          href={`/domains/${domain.data.slug}`}
+          class="group rounded-lg border border-line p-6 transition hover:border-brand"
+        >
+          <div class="flex items-baseline justify-between">
+            <h2 class="text-lg font-semibold group-hover:text-brand">
+              {domain.data.name}
+            </h2>
+            <span class="text-sm text-ink-soft">
+              {countFor(domain.data.slug)} libs
+            </span>
+          </div>
+          <p class="mt-2 text-sm text-ink-soft">{domain.data.blurb}</p>
+        </a>
+      ))
+    }
+  </div>
+</BaseLayout>
