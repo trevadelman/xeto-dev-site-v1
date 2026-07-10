@@ -48,18 +48,20 @@ const isActive = (href: string) => path === href || path.startsWith(href.replace
           <img src="/xeto-logo.png" alt="" class="h-7 w-7 rounded" />
           <span>xeto<span class="text-brand">.dev</span></span>
         </a>
-        <nav class="flex items-center gap-5 text-sm">
-          {nav.map((item) => (
-            <a
-              href={item.href}
-              class:list={[
-                "hover:text-brand",
-                isActive(item.href) ? "font-medium text-brand" : "text-ink-soft",
-              ]}
-            >
-              {item.label}
-            </a>
-          ))}
+        <div class="flex items-center gap-3">
+          <nav class="hidden items-center gap-5 text-sm sm:flex">
+            {nav.map((item) => (
+              <a
+                href={item.href}
+                class:list={[
+                  "hover:text-brand",
+                  isActive(item.href) ? "font-medium text-brand" : "text-ink-soft",
+                ]}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
           <button
             id="theme-toggle"
             type="button"
@@ -68,8 +70,31 @@ const isActive = (href: string) => path === href || path.startsWith(href.replace
           >
             ◐
           </button>
-        </nav>
+          <button
+            id="menu-toggle"
+            type="button"
+            aria-label="Open menu"
+            aria-expanded="false"
+            class="rounded border border-line px-2.5 py-1 text-ink-soft hover:text-brand sm:hidden"
+          >
+            ☰
+          </button>
+        </div>
       </div>
+      <!-- mobile nav panel -->
+      <nav id="mobile-nav" class="hidden border-t border-line sm:hidden">
+        {nav.map((item) => (
+          <a
+            href={item.href}
+            class:list={[
+              "block px-6 py-3 text-sm",
+              isActive(item.href) ? "font-medium text-brand" : "text-ink-soft",
+            ]}
+          >
+            {item.label}
+          </a>
+        ))}
+      </nav>
     </header>
 
     <main class="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
@@ -86,6 +111,12 @@ const isActive = (href: string) => path === href || path.startsWith(href.replace
     </footer>
 
     <script is:inline>
+      const menuBtn = document.getElementById("menu-toggle");
+      menuBtn?.addEventListener("click", () => {
+        const panel = document.getElementById("mobile-nav");
+        const open = panel.classList.toggle("hidden");
+        menuBtn.setAttribute("aria-expanded", String(!open));
+      });
       document.getElementById("theme-toggle")?.addEventListener("click", () => {
         const el = document.documentElement;
         const next = el.dataset.theme === "dark" ? "light" : "dark";

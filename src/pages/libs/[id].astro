@@ -111,12 +111,20 @@ const allIds = new Set((await getCollection("libs")).map((l) => l.id));
         Open full explorer ↗
       </a>
     </div>
-    <div class="mt-4 overflow-hidden rounded-lg border border-line shadow-sm">
+    <!-- desktop: embedded explorer; mobile: link out (the embed is too cramped
+         on small screens, and display:none + lazy keeps it from loading) -->
+    <div class="mt-4 hidden overflow-hidden rounded-lg border border-line shadow-sm md:block">
       <iframe
         src={`/explorer/index.html?embed${explorerHash}`}
         title={`Xeto explorer — ${name}`}
         class="h-[70vh] w-full"
         loading="lazy"></iframe>
     </div>
+    <a
+      href={`/explorer/${explorerHash}`}
+      class="mt-4 block rounded-lg border border-line p-5 text-center font-medium text-brand transition hover:border-brand md:hidden"
+    >
+      Browse {name} in the explorer →
+    </a>
   </section>
 </BaseLayout>

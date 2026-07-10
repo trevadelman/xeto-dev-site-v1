@@ -47,6 +47,30 @@ const nav = docNav("doc.xeto");
         <span class="mx-1.5">/</span>
         <span class="text-ink">{title}</span>
       </nav>
+      <!-- mobile-only section nav; sidebar is hidden below lg -->
+      <details class="mt-4 rounded-lg border border-line lg:hidden">
+        <summary class="cursor-pointer px-4 py-2.5 text-sm font-medium">
+          Language reference pages
+        </summary>
+        <ul class="space-y-1.5 border-t border-line px-4 py-3 text-sm">
+          {
+            nav.map((item) => (
+              <li>
+                <a
+                  href={`/docs/lang/${item.page}`}
+                  class:list={[
+                    "hover:text-brand",
+                    item.page === page ? "font-medium text-brand" : "text-ink-soft",
+                  ]}
+                >
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </details>
+
       <article class="prose-docs mt-8 max-w-3xl" set:html={html} />
     </div>
   </div>

@@ -48,6 +48,15 @@ code {
   font-size: 0.875em;
 }
 
+/* lib tables collapse to stacked cards below md */
+@media (max-width: 47.9rem) {
+  .lib-table thead { display: none; }
+  .lib-table, .lib-table tbody, .lib-table tr, .lib-table td { display: block; }
+  .lib-table tr { padding: 0.75rem 1rem; }
+  .lib-table tr[hidden] { display: none; }
+  .lib-table td { padding: 0.15rem 0; }
+}
+
 /* rendered-markdown articles (language docs) */
 .prose-docs {
   color: var(--color-ink);
@@ -77,7 +86,14 @@ code {
   padding-left: 1rem;
   color: var(--color-ink-soft);
 }
-.prose-docs table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.9rem; }
+.prose-docs table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  display: block;
+  overflow-x: auto;
+}
 .prose-docs th, .prose-docs td {
   border: 1px solid var(--color-line);
   padding: 0.5rem 0.75rem;
