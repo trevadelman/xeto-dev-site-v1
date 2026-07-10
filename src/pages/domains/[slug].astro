@@ -1,7 +1,6 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import LibCard from "../../components/LibCard.astro";
 
 export async function getStaticPaths() {
   const domains = await getCollection("domains");
@@ -28,6 +27,19 @@ const libs = (await getCollection("libs")).filter((l) =>
   <p class="mt-3 max-w-2xl text-ink-soft">{domain.data.blurb}</p>
 
   <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    {libs.map((lib) => <LibCard lib={lib} />)}
+    {
+      libs.map((lib) => (
+        <a
+          href={`/libs/${lib.id}`}
+          class="group rounded-lg border border-line p-5 transition hover:border-brand"
+        >
+          <div class="flex items-baseline justify-between gap-2">
+            <h3 class="font-mono font-semibold group-hover:text-brand">{lib.data.name}</h3>
+            <span class="font-mono text-xs text-ink-soft">v{lib.data.version}</span>
+          </div>
+          <p class="mt-2 text-sm text-ink-soft">{lib.data.summary}</p>
+        </a>
+      ))
+    }
   </div>
 </BaseLayout>
