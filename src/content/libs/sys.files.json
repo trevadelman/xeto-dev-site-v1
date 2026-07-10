@@ -1,0 +1,12 @@
+{
+  "name": "sys.files",
+  "version": "5.0.0",
+  "summary": "System library for MIME typed file specs",
+  "domains": [
+    "core"
+  ],
+  "depends": [
+    "sys"
+  ],
+  "github": "https://github.com/Project-Haystack/xeto"
+}

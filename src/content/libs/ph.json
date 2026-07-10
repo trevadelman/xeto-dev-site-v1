@@ -1,9 +1,12 @@
 {
   "name": "ph",
-  "version": "1.0.0",
-  "summary": "Project Haystack core semantics as Xeto types — entities, markers, refs, and the tagging vocabulary of the smart-buildings world.",
+  "version": "5.0.0",
+  "summary": "Project haystack core library",
   "domains": [
     "smart-buildings"
+  ],
+  "depends": [
+    "sys"
   ],
   "github": "https://github.com/Project-Haystack/xeto",
   "featured": true

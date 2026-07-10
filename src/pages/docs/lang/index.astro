@@ -1,0 +1,16 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { renderDoc } from "../../../lib/bundleDocs";
+
+// index.md is the doc.xeto lib's own table of contents
+const { html } = renderDoc("doc.xeto", "index", "/docs/lang/");
+---
+
+<BaseLayout title="Xeto language reference — xeto.dev">
+  <h1 class="text-3xl font-bold tracking-tight">Language reference</h1>
+  <p class="mt-3 max-w-2xl text-ink-soft">
+    The canonical Xeto documentation, published from the
+    <a href="/libs/doc.xeto" class="text-brand hover:underline">doc.xeto</a> library.
+  </p>
+  <article class="prose-docs mt-8 max-w-3xl" set:html={html} />
+</BaseLayout>

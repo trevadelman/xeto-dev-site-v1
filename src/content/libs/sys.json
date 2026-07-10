@@ -1,10 +1,11 @@
 {
   "name": "sys",
-  "version": "1.0.0",
-  "summary": "The Xeto core type system — Obj, Scalar, Dict, List, and the built-in scalar types every library depends on.",
+  "version": "5.0.0",
+  "summary": "System library of built-in types",
   "domains": [
     "core"
   ],
+  "depends": [],
   "github": "https://github.com/Project-Haystack/xeto",
   "featured": true
 }

@@ -1,9 +1,15 @@
 {
   "name": "ashrae.g36",
-  "version": "1.0.0",
-  "summary": "ASHRAE Guideline 36 high-performance sequences of operation, modeled as typed Xeto specs.",
+  "version": "5.0.0",
+  "summary": "ASHRAE Guideline 36 examples",
   "domains": [
     "smart-buildings"
   ],
-  "github": "https://github.com/Project-Haystack/xeto"
+  "depends": [
+    "sys",
+    "ph",
+    "ph.points"
+  ],
+  "github": "https://github.com/Project-Haystack/xeto",
+  "featured": true
 }

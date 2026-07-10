@@ -16,6 +16,7 @@ const libs = defineCollection({
     summary: z.string(),
     description: z.string().optional(),
     domains: z.array(z.string()).default([]),
+    depends: z.array(z.string()).default([]),
     github: z.string().url().optional(),
     media: z.array(z.string()).default([]),
     featured: z.boolean().default(false),

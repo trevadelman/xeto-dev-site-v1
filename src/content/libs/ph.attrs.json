@@ -1,14 +1,13 @@
 {
-  "name": "ph.elec",
+  "name": "ph.attrs",
   "version": "5.0.0",
-  "summary": "Project Haystack's Xeto specs for electricity",
+  "summary": "Project haystack experimental attributes library",
   "domains": [
     "smart-buildings"
   ],
   "depends": [
     "sys",
-    "ph",
-    "ph.points"
+    "ph"
   ],
   "github": "https://github.com/Project-Haystack/xeto"
 }

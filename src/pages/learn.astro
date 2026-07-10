@@ -1,0 +1,133 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Learn Xeto — xeto.dev">
+  <h1 class="text-3xl font-bold tracking-tight">What is Xeto?</h1>
+
+  <div class="mt-6 max-w-3xl space-y-5 text-ink-soft">
+    <p>
+      <strong class="text-ink">Xeto</strong> ("extensible explicitly typed
+      objects") is a language for defining typed data specifications. A Xeto
+      <em>spec</em> describes the shape of data — its slots, types, constraints,
+      and documentation — and a Xeto <em>library</em> packages related specs
+      together with versioning and dependencies.
+    </p>
+    <p>
+      Think of it like a type system for the data layer: instead of every
+      project inventing its own JSON conventions, domains share libraries of
+      well-defined types that tooling can validate against, generate from, and
+      document automatically.
+    </p>
+    <p>
+      Xeto grew out of
+      <a
+        href="https://project-haystack.org"
+        class="text-brand underline decoration-brand-soft underline-offset-2"
+        >Project Haystack</a
+      >
+      and the smart-buildings world, where it types everything from HVAC points
+      to ASHRAE control sequences — but the language itself is domain-neutral.
+    </p>
+  </div>
+
+  <h2 class="mt-12 text-xl font-semibold">A taste of the language</h2>
+  <pre
+    class="mt-4 max-w-3xl overflow-x-auto rounded-lg border border-line bg-paper-soft p-5 text-sm"><code>// A spec describes the shape of data: a Book has a
+// title (text), an author (text), and a page count (number).
+// The "?" marks rating as optional.
+Book: Dict &#123;
+  title: Str
+  author: Str
+  pages: Int
+  rating: Int?
+&#125;
+
+// This is data — a real book. Because it says it's a Book,
+// tools can check it has everything a Book requires.
+@dune: Book &#123;title: "Dune", author: "Frank Herbert", pages: 412&#125;</code></pre>
+
+  <h2 class="mt-12 text-xl font-semibold">Why a spec language?</h2>
+  <div class="mt-4 max-w-3xl space-y-5 text-ink-soft">
+    <p>
+      Most data problems aren't really data problems — they're
+      <em>agreement</em> problems. Two systems each hold perfectly good data
+      but disagree on names, units, structure, or what "optional" means. Xeto's
+      answer is to make the agreement itself a first-class, versioned artifact:
+    </p>
+    <ul class="list-disc space-y-2 pl-6">
+      <li>
+        <strong class="text-ink">Specs are data.</strong> A spec is itself just
+        a dict — you can query it, transform it, and generate code, docs, or
+        UIs from it with the same tools you use on instance data.
+      </li>
+      <li>
+        <strong class="text-ink">Validation is built in.</strong> Constraints —
+        types, units, enums, numeric ranges, required vs. maybe — live in the
+        spec, so every consumer validates the same way.
+      </li>
+      <li>
+        <strong class="text-ink">Composition over duplication.</strong>
+        Inheritance, mixins, and choices let libraries extend each other
+        instead of copying definitions — <span class="font-mono">ph.points</span>
+        builds on <span class="font-mono">ph</span> builds on
+        <span class="font-mono">sys</span>.
+      </li>
+      <li>
+        <strong class="text-ink">Docs come along for free.</strong> Every spec
+        carries its documentation, so tooling like the explorer on this site
+        can render a complete, browsable reference straight from source.
+      </li>
+    </ul>
+  </div>
+
+  <h2 class="mt-12 text-xl font-semibold">Where xeto.dev fits in</h2>
+  <div class="mt-4 max-w-3xl space-y-5 text-ink-soft">
+    <p>
+      A spec language is only as valuable as the specs people share. That's
+      what this site is for: <strong class="text-ink">xeto.dev is the
+      distribution and community layer for Xeto</strong> — the place where
+      libraries are published, versioned, browsed, and discovered.
+    </p>
+    <p>
+      Just as npm did for JavaScript and crates.io did for Rust, the registry
+      turns a language into an ecosystem: publish a library once, and anyone
+      can pull it into their namespace, browse its specs in the
+      <a href="/explorer/" class="text-brand underline decoration-brand-soft underline-offset-2">explorer</a>,
+      and build on it in their own domain. Today that starts with the
+      <a href="/libs" class="text-brand underline decoration-brand-soft underline-offset-2">core and Project Haystack libraries</a>
+      — publishing for the community is where this is headed.
+    </p>
+  </div>
+
+  <h2 class="mt-12 text-xl font-semibold">Go deeper</h2>
+  <div class="mt-5 mb-6 grid gap-4 sm:grid-cols-3">
+    <a
+      href="/docs/lang"
+      class="group rounded-lg border border-line p-5 transition hover:border-brand"
+    >
+      <h3 class="font-semibold group-hover:text-brand">Language docs</h3>
+      <p class="mt-1 text-sm text-ink-soft">
+        The complete reference, published from the doc.xeto library →
+      </p>
+    </a>
+    <a
+      href="/explorer/"
+      class="group rounded-lg border border-line p-5 transition hover:border-brand"
+    >
+      <h3 class="font-semibold group-hover:text-brand">The explorer</h3>
+      <p class="mt-1 text-sm text-ink-soft">
+        Browse every spec in the registry, live →
+      </p>
+    </a>
+    <a
+      href="https://github.com/Project-Haystack/xeto"
+      class="group rounded-lg border border-line p-5 transition hover:border-brand"
+    >
+      <h3 class="font-semibold group-hover:text-brand">GitHub</h3>
+      <p class="mt-1 text-sm text-ink-soft">
+        Source, core libraries, and issues →
+      </p>
+    </a>
+  </div>
+</BaseLayout>

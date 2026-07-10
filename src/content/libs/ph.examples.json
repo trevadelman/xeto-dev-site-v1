@@ -1,7 +1,7 @@
 {
-  "name": "ph.elec",
+  "name": "ph.examples",
   "version": "5.0.0",
-  "summary": "Project Haystack's Xeto specs for electricity",
+  "summary": "Project haystack example data",
   "domains": [
     "smart-buildings"
   ],

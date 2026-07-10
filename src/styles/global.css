@@ -47,3 +47,49 @@ code {
   padding: 0.1rem 0.35rem;
   font-size: 0.875em;
 }
+
+/* rendered-markdown articles (language docs) */
+.prose-docs {
+  color: var(--color-ink);
+  line-height: 1.7;
+}
+.prose-docs h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 1rem; }
+.prose-docs h2 { font-size: 1.35rem; font-weight: 650; margin: 2.25rem 0 0.75rem; }
+.prose-docs h3 { font-size: 1.1rem; font-weight: 650; margin: 1.75rem 0 0.5rem; }
+.prose-docs p { margin: 0.75rem 0; color: var(--color-ink-soft); }
+.prose-docs li { color: var(--color-ink-soft); margin: 0.3rem 0; }
+.prose-docs ul { list-style: disc; padding-left: 1.5rem; margin: 0.75rem 0; }
+.prose-docs ol { list-style: decimal; padding-left: 1.5rem; margin: 0.75rem 0; }
+.prose-docs a { color: var(--color-brand); }
+.prose-docs a:hover { text-decoration: underline; }
+.prose-docs pre {
+  background-color: var(--color-paper-soft);
+  border: 1px solid var(--color-line);
+  border-radius: 0.5rem;
+  padding: 1rem 1.25rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  margin: 1rem 0;
+}
+.prose-docs blockquote {
+  border-left: 3px solid var(--color-line);
+  margin: 1rem 0;
+  padding-left: 1rem;
+  color: var(--color-ink-soft);
+}
+.prose-docs table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.9rem; }
+.prose-docs th, .prose-docs td {
+  border: 1px solid var(--color-line);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.prose-docs th { background-color: var(--color-paper-soft); }
+
+/* code blocks: the inline-code chrome doesn't apply inside pre */
+pre code {
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  font-size: inherit;
+}

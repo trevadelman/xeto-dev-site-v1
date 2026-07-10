@@ -1,0 +1,12 @@
+{
+  "name": "sys.comp",
+  "version": "5.0.0",
+  "summary": "System library for component oriented programming",
+  "domains": [
+    "core"
+  ],
+  "depends": [
+    "sys"
+  ],
+  "github": "https://github.com/Project-Haystack/xeto"
+}

@@ -13,9 +13,14 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const nav = [
   { href: "/libs", label: "Libraries" },
   { href: "/domains", label: "Domains" },
-  { href: "/docs", label: "Docs" },
+  { href: "/learn", label: "Learn" },
+  { href: "/docs/lang", label: "Docs" },
   { href: "/explorer/", label: "Explorer" },
 ];
+
+// active section for nav highlighting, e.g. /libs/ph -> /libs
+const path = Astro.url.pathname;
+const isActive = (href: string) => path === href || path.startsWith(href.replace(/\/$/, "") + "/") || path === href.replace(/\/$/, "");
 ---
 
 <!doctype html>
@@ -36,8 +41,8 @@ const nav = [
       document.documentElement.dataset.theme = theme;
     </script>
   </head>
-  <body class="min-h-dvh font-sans antialiased">
-    <header class="border-b border-line">
+  <body class="flex min-h-dvh flex-col font-sans antialiased">
+    <header class="sticky top-0 z-20 border-b border-line bg-paper/85 backdrop-blur">
       <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
         <a href="/" class="flex items-center gap-2 font-semibold tracking-tight">
           <img src="/xeto-logo.png" alt="" class="h-7 w-7 rounded" />
@@ -45,7 +50,13 @@ const nav = [
         </a>
         <nav class="flex items-center gap-5 text-sm">
           {nav.map((item) => (
-            <a href={item.href} class="text-ink-soft hover:text-brand">
+            <a
+              href={item.href}
+              class:list={[
+                "hover:text-brand",
+                isActive(item.href) ? "font-medium text-brand" : "text-ink-soft",
+              ]}
+            >
               {item.label}
             </a>
           ))}
@@ -61,11 +72,11 @@ const nav = [
       </div>
     </header>
 
-    <main class="mx-auto max-w-6xl px-6 py-10">
+    <main class="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
       <slot />
     </main>
 
-    <footer class="border-t border-line">
+    <footer class="mt-auto border-t border-line">
       <div
         class="mx-auto flex max-w-6xl items-center justify-between px-6 py-8 text-sm text-ink-soft"
       >

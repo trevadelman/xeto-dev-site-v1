@@ -1,14 +1,12 @@
 {
-  "name": "ph.elec",
+  "name": "ph.protocols",
   "version": "5.0.0",
-  "summary": "Project Haystack's Xeto specs for electricity",
+  "summary": "Project haystack experimental protocol library",
   "domains": [
     "smart-buildings"
   ],
   "depends": [
-    "sys",
-    "ph",
-    "ph.points"
+    "sys"
   ],
   "github": "https://github.com/Project-Haystack/xeto"
 }

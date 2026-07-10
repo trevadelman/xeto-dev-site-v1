@@ -1,14 +1,12 @@
 {
-  "name": "ph.elec",
+  "name": "ph.doc",
   "version": "5.0.0",
-  "summary": "Project Haystack's Xeto specs for electricity",
+  "summary": "Project Haystack ontology documentation",
   "domains": [
     "smart-buildings"
   ],
   "depends": [
-    "sys",
-    "ph",
-    "ph.points"
+    "sys"
   ],
   "github": "https://github.com/Project-Haystack/xeto"
 }

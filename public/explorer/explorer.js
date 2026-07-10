@@ -565,8 +565,13 @@ function initPalette()
 // Top bar: bundle switcher
 //////////////////////////////////////////////////////////////////////////
 
+// embed mode (?embed): hides the topbar chrome so the explorer can be
+// iframed inside xeto.dev library pages without double-branding
+const embedMode = new URLSearchParams(location.search).has("embed");
+
 function renderTopBar()
 {
+  if (embedMode) { document.getElementById("topbar").style.display = "none"; return; }
   document.getElementById("topbar").innerHTML =
     `<a class="brand" href="/">xeto.dev</a>` +
     `<div id="bundle-switcher" class="dropdown">` +

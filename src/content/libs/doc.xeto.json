@@ -1,9 +1,13 @@
 {
   "name": "doc.xeto",
-  "version": "1.0.0",
-  "summary": "The Xeto language documentation — grammar, concepts, and reference material as a browsable library.",
+  "version": "5.0.0",
+  "summary": "Xeto language documentation",
   "domains": [
     "core"
   ],
-  "github": "https://github.com/Project-Haystack/xeto"
+  "depends": [
+    "sys"
+  ],
+  "github": "https://github.com/Project-Haystack/xeto",
+  "featured": true
 }

@@ -1,0 +1,12 @@
+{
+  "name": "doc.xeto.tutorials",
+  "version": "5.0.0",
+  "summary": "Xeto tutorials and training videos",
+  "domains": [
+    "core"
+  ],
+  "depends": [
+    "sys"
+  ],
+  "github": "https://github.com/Project-Haystack/xeto"
+}

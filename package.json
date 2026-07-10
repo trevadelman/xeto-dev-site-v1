@@ -12,6 +12,7 @@
     "@astrojs/check": "^0.9.9",
     "@astrojs/netlify": "^7.0.0",
     "astro": "^6.0.0",
+    "marked": "^18.0.6",
     "typescript": "^5.7.0"
   },
   "devDependencies": {

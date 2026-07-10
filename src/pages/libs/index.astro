@@ -1,7 +1,6 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import LibCard from "../../components/LibCard.astro";
 
 const libs = (await getCollection("libs")).sort((a, b) =>
   a.data.name.localeCompare(b.data.name),
@@ -14,7 +13,67 @@ const libs = (await getCollection("libs")).sort((a, b) =>
     Every library in the registry. Click through for details and spec-level
     browsing in the explorer.
   </p>
-  <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    {libs.map((lib) => <LibCard lib={lib} />)}
+  <div class="mt-6">
+    <input
+      id="lib-filter"
+      type="search"
+      placeholder="Filter libraries…"
+      autocomplete="off"
+      class="w-full max-w-sm rounded-lg border border-line bg-paper px-3.5 py-2 text-sm placeholder:text-ink-soft focus:border-brand focus:outline-none"
+    />
   </div>
+  <div class="mt-4 overflow-hidden rounded-lg border border-line">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
+          <th class="px-4 py-2.5 font-semibold">Library</th>
+          <th class="px-4 py-2.5 font-semibold">Version</th>
+          <th class="px-4 py-2.5 font-semibold">Summary</th>
+          <th class="px-4 py-2.5 font-semibold">Domain</th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          libs.map((lib) => (
+            <tr class="border-b border-line last:border-b-0 hover:bg-paper-soft">
+              <td class="px-4 py-3">
+                <a href={`/libs/${lib.id}`} class="font-mono font-medium text-brand hover:underline">
+                  {lib.data.name}
+                </a>
+              </td>
+              <td class="px-4 py-3 font-mono text-ink-soft">{lib.data.version}</td>
+              <td class="px-4 py-3 text-ink-soft">{lib.data.summary}</td>
+              <td class="px-4 py-3">
+                {lib.data.domains.map((d) => (
+                  <a href={`/domains/${d}`} class="text-xs text-brand hover:underline">
+                    {d}
+                  </a>
+                ))}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+    <p id="lib-empty" class="hidden px-4 py-6 text-sm text-ink-soft">
+      No libraries match.
+    </p>
+  </div>
+
+  <script>
+    // client-side filter over the static table — matches name, summary, domain
+    const input = document.getElementById("lib-filter") as HTMLInputElement;
+    const rows = [...document.querySelectorAll<HTMLTableRowElement>("tbody tr")];
+    const empty = document.getElementById("lib-empty")!;
+    input.addEventListener("input", () => {
+      const q = input.value.trim().toLowerCase();
+      let shown = 0;
+      for (const row of rows) {
+        const hit = row.textContent!.toLowerCase().includes(q);
+        row.hidden = !hit;
+        if (hit) shown++;
+      }
+      empty.classList.toggle("hidden", shown > 0);
+    });
+  </script>
 </BaseLayout>
