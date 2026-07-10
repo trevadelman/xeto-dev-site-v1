@@ -206,3 +206,23 @@ table table tr:hover { background: none; }
   background: var(--accent-tint); border-radius: 4px; padding: 0.15em 0.45em; flex-shrink: 0;
 }
 #palette-results .name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+/* mobile: sidebar becomes an overlay drawer toggled from the topbar */
+#topbar .nav-btn { display: none; }
+@media (max-width: 48em) {
+  #topbar .nav-btn { display: inline-flex; }
+  #topbar .search-btn .kbd { display: none; }
+  #nav-resize { display: none; }
+  #nav {
+    display: none; position: fixed; top: 0; bottom: 0; left: 0; z-index: 50;
+    width: min(20em, 85vw); box-shadow: var(--shadow-md);
+  }
+  body.nav-open #nav { display: block; }
+  #nav-backdrop {
+    display: none; position: fixed; inset: 0; z-index: 49;
+    background: rgba(22,24,29,0.45);
+  }
+  body.nav-open #nav-backdrop { display: block; }
+  #main { padding: 1em; }
+  #main table { display: block; overflow-x: auto; }
+}

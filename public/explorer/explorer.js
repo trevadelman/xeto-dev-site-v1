@@ -573,6 +573,7 @@ function renderTopBar()
 {
   if (embedMode) { document.getElementById("topbar").style.display = "none"; return; }
   document.getElementById("topbar").innerHTML =
+    `<button class="btn btn-ghost nav-btn" onclick="toggleNav()" aria-label="Toggle navigation">&#9776;</button>` +
     `<a class="brand" href="/">xeto.dev</a>` +
     `<div id="bundle-switcher" class="dropdown">` +
       `<button class="btn dropdown-toggle" onclick="toggleBundleMenu()">` +
@@ -684,7 +685,13 @@ function renderNavList(filter)
 // Boot
 //////////////////////////////////////////////////////////////////////////
 
-window.addEventListener("hashchange", route);
+// mobile nav drawer (see explorer.css media query); closes on navigation
+function toggleNav(force)
+{
+  document.body.classList.toggle("nav-open", force);
+}
+
+window.addEventListener("hashchange", () => { toggleNav(false); route(); });
 
 loadBundleList()
   .then(() => { initPalette(); return route(); })
