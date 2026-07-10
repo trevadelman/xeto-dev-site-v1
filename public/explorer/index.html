@@ -1,32 +1,30 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Explorer — xeto.dev</title>
-    <style>
-      body {
-        font-family: system-ui, sans-serif;
-        display: grid;
-        place-items: center;
-        min-height: 100dvh;
-        margin: 0;
-        background: #f7f6fb;
-        color: #1c1a26;
-      }
-      main { text-align: center; padding: 2rem; }
-      h1 { color: #6846cb; }
-      a { color: #6846cb; }
-    </style>
-  </head>
-  <body>
-    <main>
-      <h1>Explorer coming soon</h1>
-      <p>
-        The interactive spec explorer will live here in the next phase.
-        <br />
-        <a href="/">Back to xeto.dev</a>
-      </p>
-    </main>
-  </body>
+<!DOCTYPE html>
+<!--
+  Xeto Studio Explorer: static app for xeto namespace bundles.  See
+  explorer.js for the client-side namespace loader, routing, and views.
+-->
+<html>
+<head>
+<meta charset="UTF-8">
+<title>xeto.dev — explorer</title>
+<link rel="stylesheet" href="explorer.css">
+<script src="xeto.js"></script>
+</head>
+<body>
+<div id="topbar"></div>
+<div id="body">
+<div id="nav">Loading&hellip;</div>
+<div id="nav-resize"></div>
+<div id="main"></div>
+</div>
+
+<div id="palette-backdrop">
+  <div id="palette">
+    <input id="palette-input" type="text" placeholder="Search specs, instances, libs&hellip;">
+    <div id="palette-results"></div>
+  </div>
+</div>
+
+<script src="explorer.js"></script>
+</body>
 </html>
