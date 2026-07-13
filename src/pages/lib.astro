@@ -1,0 +1,117 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+// Registry lib detail page — fully client-rendered from the registry
+// API so any lib published after the last deploy still gets a page.
+// Served for /lib/{name} via a public/_redirects rewrite.
+---
+
+<BaseLayout title="Library — xeto.dev">
+  <nav class="text-sm text-ink-soft">
+    <a href="/libs" class="hover:text-brand">Libraries</a>
+    <span class="mx-1.5">/</span>
+    <span id="crumb" class="font-mono text-ink">…</span>
+  </nav>
+
+  <div id="loading" class="mt-6 text-ink-soft">Loading from the registry…</div>
+  <div id="notfound" class="mt-6 hidden text-ink-soft">
+    Library not found in the registry.
+  </div>
+
+  <div id="lib" class="hidden">
+    <div class="mt-6 grid gap-8 lg:grid-cols-[1fr_16rem]">
+      <div>
+        <div class="flex flex-wrap items-baseline gap-3">
+          <h1 id="lib-name" class="font-mono text-3xl font-bold tracking-tight"></h1>
+          <span id="lib-version" class="font-mono text-sm text-ink-soft"></span>
+        </div>
+        <p id="lib-doc" class="mt-4 max-w-2xl text-lg text-ink-soft"></p>
+
+        <div class="mt-6 rounded-lg border border-line bg-paper-soft p-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Install</p>
+          <pre class="mt-2 overflow-x-auto text-sm"><code id="lib-install"></code></pre>
+        </div>
+
+        <section class="mt-10">
+          <h2 class="text-xl font-semibold">Versions</h2>
+          <div class="mt-4 overflow-hidden rounded-lg border border-line">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
+                  <th class="px-4 py-2.5 font-semibold">Version</th>
+                  <th class="px-4 py-2.5 font-semibold">Published</th>
+                  <th class="px-4 py-2.5 font-semibold">Downloads</th>
+                </tr>
+              </thead>
+              <tbody id="lib-versions"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <aside class="space-y-5 text-sm lg:border-l lg:border-line lg:pl-6">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Publisher</p>
+          <p id="lib-publisher" class="mt-1"></p>
+        </div>
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Downloads</p>
+          <p id="lib-downloads" class="mt-1 font-mono"></p>
+        </div>
+        <div id="lib-depends-wrap" class="hidden">
+          <p class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Depends on</p>
+          <ul id="lib-depends" class="mt-1.5 space-y-1 font-mono"></ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    import { libSummary, libVersions, fmtDate } from "../lib/registry";
+
+    // path via _redirects rewrite in prod; ?name= fallback for local dev
+    const name =
+      new URLSearchParams(location.search).get("name") ??
+      decodeURIComponent(location.pathname.replace(/^\/lib\//, "").replace(/\/$/, ""));
+    const el = (id: string) => document.getElementById(id)!;
+    el("crumb").textContent = name;
+    document.title = `${name} — xeto.dev`;
+
+    async function load() {
+      const [summary, vers] = await Promise.all([libSummary(name), libVersions(name)]);
+      el("lib-name").textContent = summary.name;
+      el("lib-version").textContent = `v${summary.version}`;
+      el("lib-doc").textContent = summary.doc;
+      el("lib-install").textContent = `xeto install ${summary.name}`;
+      el("lib-publisher").textContent = summary.publisher;
+      el("lib-downloads").textContent = String(summary.downloads);
+
+      const depends = summary.depends ?? [];
+      if (depends.length > 0) {
+        el("lib-depends").innerHTML = depends
+          .map((d) => `<li class="text-ink-soft">${d.name} <span class="text-xs">${d.versions}</span></li>`)
+          .join("");
+        el("lib-depends-wrap").classList.remove("hidden");
+      }
+
+      el("lib-versions").innerHTML = vers.versions
+        .map(
+          (v) => `
+        <tr class="border-b border-line last:border-b-0">
+          <td class="px-4 py-3 font-mono">${v.version}</td>
+          <td class="px-4 py-3 text-ink-soft">${fmtDate(v.published_at)}</td>
+          <td class="px-4 py-3 text-ink-soft">${v.downloads}</td>
+        </tr>`,
+        )
+        .join("");
+
+      el("loading").classList.add("hidden");
+      el("lib").classList.remove("hidden");
+    }
+
+    load().catch((err) => {
+      console.error(err);
+      el("loading").classList.add("hidden");
+      el("notfound").classList.remove("hidden");
+    });
+  </script>
+</BaseLayout>

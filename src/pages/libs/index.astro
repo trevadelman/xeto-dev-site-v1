@@ -60,6 +60,68 @@ const libs = (await getCollection("libs")).sort((a, b) =>
     </p>
   </div>
 
+  <!-- community libs, live from the registry API — no rebuild needed -->
+  <section id="registry-section" class="mt-10 hidden">
+    <h2 class="text-xl font-semibold">From the registry</h2>
+    <p class="mt-1 text-sm text-ink-soft">
+      Community-published libraries, live from the xeto.dev registry.
+    </p>
+    <div class="mt-4 overflow-hidden rounded-lg border border-line">
+      <table class="lib-table w-full text-sm">
+        <thead>
+          <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
+            <th class="px-4 py-2.5 font-semibold">Library</th>
+            <th class="px-4 py-2.5 font-semibold">Version</th>
+            <th class="px-4 py-2.5 font-semibold">Summary</th>
+            <th class="px-4 py-2.5 font-semibold">Downloads</th>
+          </tr>
+        </thead>
+        <tbody id="registry-rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <script>
+    import { searchLibs } from "../../lib/registry";
+
+    // registry libs not already covered by a static curated page
+    const staticNames = new Set(
+      [...document.querySelectorAll("tbody a[href^='/libs/']")].map(
+        (a) => a.textContent!.trim(),
+      ),
+    );
+    const section = document.getElementById("registry-section")!;
+    const tbody = document.getElementById("registry-rows")!;
+
+    function render(libs: { name: string; version: string; doc: string; downloads: number }[]) {
+      const rows = libs.filter((l) => !staticNames.has(l.name));
+      tbody.innerHTML = rows
+        .map(
+          (l) => `
+        <tr class="border-b border-line last:border-b-0 hover:bg-paper-soft">
+          <td class="px-4 py-3"><a href="/lib/${l.name}" class="font-mono font-medium text-brand hover:underline">${l.name}</a></td>
+          <td class="px-4 py-3 font-mono text-ink-soft">${l.version}</td>
+          <td class="px-4 py-3 text-ink-soft">${l.doc}</td>
+          <td class="px-4 py-3 text-ink-soft">${l.downloads}</td>
+        </tr>`,
+        )
+        .join("");
+      section.classList.toggle("hidden", rows.length === 0);
+    }
+
+    searchLibs().then((res) => render(res.libs)).catch(() => {});
+
+    // search box also queries the registry (debounced)
+    const filterInput = document.getElementById("lib-filter") as HTMLInputElement;
+    let timer: number | undefined;
+    filterInput.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        searchLibs(filterInput.value.trim()).then((res) => render(res.libs)).catch(() => {});
+      }, 250);
+    });
+  </script>
+
   <script>
     // client-side filter over the static table — matches name, summary, domain
     const input = document.getElementById("lib-filter") as HTMLInputElement;

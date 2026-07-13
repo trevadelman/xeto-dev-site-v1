@@ -5,6 +5,8 @@
 [build.environment]
   NODE_VERSION = "24"
 
+# routing rules (redirects/rewrites) live in public/_redirects
+
 [[headers]]
   for = "/*"
   [headers.values]
@@ -15,7 +17,8 @@
     Strict-Transport-Security = "max-age=63072000; includeSubDomains; preload"
     # script-src allows 'unsafe-inline' for rev 1 (theme toggle inline scripts);
     # tighten with Astro script hashing later
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self'; frame-ancestors 'none'"
+    # connect-src includes Supabase for the /account auth + token island
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://aberopmtegsusdukrncd.supabase.co; frame-ancestors 'none'"
 
 # The explorer SPA uses inline event handlers; relax script-src for that path
 # only. frame-ancestors 'self' lets library pages iframe it in embed mode.

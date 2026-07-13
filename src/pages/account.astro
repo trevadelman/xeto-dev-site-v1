@@ -1,0 +1,342 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+// account page: magic-link sign-in + api token management.
+// first dynamic island of the static site — vanilla JS against the
+// Supabase Auth REST endpoints and our /api account endpoints
+// (no SDK; anon key is publishable by design).
+const SUPABASE_URL = "https://aberopmtegsusdukrncd.supabase.co";
+const ANON_KEY = "sb_publishable__Ue0RZeCbmYKs76eigWXgg_B3FT1MMD";
+const API = `${SUPABASE_URL}/functions/v1/api`;
+---
+
+<BaseLayout title="Account — xeto.dev" description="Manage your xeto.dev publisher account and API tokens">
+  <h1 class="text-2xl font-semibold tracking-tight">Account</h1>
+
+  <!-- signed out: magic link form -->
+  <section id="signed-out" class="mt-8 hidden max-w-md">
+    <p class="text-ink-soft">
+      Sign in with your email to manage publish tokens. Reads and installs
+      never require an account.
+    </p>
+    <form id="magic-form" class="mt-6 flex gap-2">
+      <input
+        id="email"
+        type="email"
+        required
+        placeholder="you@example.com"
+        class="w-full rounded border border-line bg-paper px-3 py-2"
+      />
+      <button
+        type="submit"
+        class="rounded bg-brand px-4 py-2 font-medium text-white hover:opacity-90"
+      >
+        Send link
+      </button>
+    </form>
+    <p id="magic-sent" class="mt-4 hidden text-sm text-ink-soft">
+      Check your email for a sign-in link.
+    </p>
+  </section>
+
+  <!-- signed in: token management -->
+  <section id="signed-in" class="mt-8 hidden">
+    <div class="flex items-center justify-between">
+      <p class="text-ink-soft">Signed in as <span id="who" class="font-medium text-ink"></span></p>
+      <button id="sign-out" class="rounded border border-line px-3 py-1 text-sm text-ink-soft hover:text-brand">
+        Sign out
+      </button>
+    </div>
+
+    <div class="mt-8 max-w-2xl rounded-lg border border-line p-6">
+      <h2 class="text-lg font-semibold">Namespaces</h2>
+      <p class="mt-1 text-sm text-ink-soft">
+        Community prefixes you own — libs publish under
+        <code class="rounded bg-line/50 px-1">cc.&lbrace;segment&rbrace;.*</code>.
+        Publishing under a new segment claims it automatically.
+      </p>
+      <ul id="claim-rows" class="mt-4 text-sm"></ul>
+      <p id="claim-error" class="mt-2 hidden text-sm text-red-600"></p>
+      <form id="claim-form" class="mt-4 flex items-center gap-2">
+        <span class="font-mono text-sm text-ink-soft">cc.</span>
+        <input
+          id="claim-segment"
+          type="text"
+          required
+          placeholder="segment (e.g. trevor)"
+          class="w-full max-w-xs rounded border border-line bg-paper px-3 py-2 text-sm"
+        />
+        <button
+          type="submit"
+          class="whitespace-nowrap rounded bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+        >
+          Claim
+        </button>
+      </form>
+    </div>
+
+    <div class="mt-6 max-w-2xl rounded-lg border border-line p-6">
+      <h2 class="text-lg font-semibold">Published libs</h2>
+      <p class="mt-1 text-sm text-ink-soft">
+        Latest published version of each lib you own.
+      </p>
+      <ul id="lib-rows" class="mt-4 text-sm"></ul>
+    </div>
+
+    <div class="mt-6 max-w-2xl rounded-lg border border-line p-6">
+      <h2 class="text-lg font-semibold">API tokens</h2>
+      <p class="mt-1 text-sm text-ink-soft">
+        Use a token to publish from the CLI:
+        <code class="rounded bg-line/50 px-1">xeto remote-login -r xdev</code>
+      </p>
+
+    <!-- freshly minted token, shown exactly once -->
+    <div id="minted" class="mt-4 hidden rounded border border-brand/40 bg-brand/5 p-4">
+      <p class="text-sm font-medium">Copy this token now — it is shown only once:</p>
+      <div class="mt-2 flex items-center gap-2">
+        <code id="minted-token" class="break-all rounded bg-paper px-2 py-1 text-sm"></code>
+        <button id="copy-token" class="rounded border border-line px-2 py-1 text-sm hover:text-brand">Copy</button>
+      </div>
+    </div>
+
+    <table class="mt-4 w-full text-left text-sm">
+      <thead>
+        <tr class="border-b border-line text-ink-soft">
+          <th class="py-2 font-medium">Label</th>
+          <th class="py-2 font-medium">Created</th>
+          <th class="py-2 font-medium">Last used</th>
+          <th class="py-2"></th>
+        </tr>
+      </thead>
+      <tbody id="token-rows"></tbody>
+    </table>
+
+      <form id="mint-form" class="mt-6 flex items-center gap-2">
+        <input
+          id="mint-label"
+          type="text"
+          placeholder="Token label (e.g. laptop)"
+          class="w-full max-w-xs rounded border border-line bg-paper px-3 py-2 text-sm"
+        />
+        <button
+          type="submit"
+          class="whitespace-nowrap rounded bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+        >
+          Mint token
+        </button>
+      </form>
+    </div>
+  </section>
+
+  <p id="account-error" class="mt-6 hidden text-sm text-red-600"></p>
+
+  <script is:inline define:vars={{ SUPABASE_URL, ANON_KEY, API }}>
+    const $ = (id) => document.getElementById(id);
+    const show = (id) => $(id).classList.remove("hidden");
+    const hide = (id) => $(id).classList.add("hidden");
+
+    // ---- session handling ------------------------------------------------
+    // magic link returns tokens in the URL hash: #access_token=...&...
+    function captureHash() {
+      if (!location.hash.includes("access_token")) return;
+      const p = new URLSearchParams(location.hash.slice(1));
+      const at = p.get("access_token");
+      if (at) {
+        localStorage.setItem("xd_session", JSON.stringify({
+          access_token: at,
+          expires_at: Number(p.get("expires_at") ?? 0),
+        }));
+        history.replaceState(null, "", location.pathname);
+      }
+    }
+
+    function session() {
+      const raw = localStorage.getItem("xd_session");
+      if (!raw) return null;
+      const s = JSON.parse(raw);
+      if (s.expires_at && s.expires_at * 1000 < Date.now()) {
+        localStorage.removeItem("xd_session");
+        return null;
+      }
+      return s;
+    }
+
+    function fail(msg) {
+      $("account-error").textContent = msg;
+      show("account-error");
+    }
+
+    // inline error next to the section that caused it
+    function failIn(id, msg) {
+      $(id).textContent = msg;
+      show(id);
+    }
+
+    async function api(path, opts = {}) {
+      const res = await fetch(API + path, {
+        ...opts,
+        headers: {
+          "Authorization": "Bearer " + session().access_token,
+          "Content-Type": "application/json",
+          ...(opts.headers ?? {}),
+        },
+      });
+      if (res.status === 401) { signOut(); throw new Error("session expired"); }
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error ?? res.statusText);
+      return body;
+    }
+
+    function signOut() {
+      localStorage.removeItem("xd_session");
+      hide("signed-in");
+      show("signed-out");
+    }
+
+    // ---- signed-out flow -------------------------------------------------
+    $("magic-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hide("account-error");
+      const btn = e.target.querySelector("button");
+      btn.disabled = true;
+      btn.textContent = "Sending…";
+      // redirect_to is a query param on the REST endpoint (must be in the
+      // Supabase Auth redirect allow-list)
+      const redirect = encodeURIComponent(location.origin + "/account");
+      const res = await fetch(SUPABASE_URL + "/auth/v1/otp?redirect_to=" + redirect, {
+        method: "POST",
+        headers: { "apikey": ANON_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({ email: $("email").value, create_user: true }),
+      });
+      btn.disabled = false;
+      btn.textContent = "Send link";
+      if (!res.ok) return fail("Could not send link: " + (await res.json()).msg);
+      show("magic-sent");
+    });
+
+    // ---- signed-in flow --------------------------------------------------
+    async function loadAccount() {
+      const me = await api("/account", { method: "POST" });
+      $("who").textContent = me.email ?? me.display_name;
+      await loadClaims();
+      await loadLibs();
+      await loadTokens();
+      show("signed-in");
+    }
+
+    async function loadClaims() {
+      const { claims } = await api("/account/claims");
+      const rows = $("claim-rows");
+      rows.innerHTML = "";
+      if (claims.length === 0) {
+        rows.innerHTML = `<li class="py-2 text-ink-soft">No namespaces claimed yet.</li>`;
+        return;
+      }
+      for (const c of claims) {
+        const li = document.createElement("li");
+        li.className = "flex items-center justify-between border-b border-line py-2";
+        li.innerHTML = `
+          <code class="rounded bg-line/50 px-1"></code>
+          <button class="rounded border border-line px-2 py-1 text-xs hover:text-red-600">Release</button>`;
+        li.querySelector("code").textContent = "cc." + c.segment;
+        li.querySelector("button").addEventListener("click", async () => {
+          hide("claim-error");
+          try {
+            await api("/account/claims/" + c.segment, { method: "DELETE" });
+            await loadClaims();
+          } catch (e) { failIn("claim-error", e.message); }
+        });
+        rows.appendChild(li);
+      }
+    }
+
+    async function loadLibs() {
+      const { libs } = await api("/account/libs");
+      const rows = $("lib-rows");
+      rows.innerHTML = "";
+      if (libs.length === 0) {
+        rows.innerHTML = `<li class="py-2 text-ink-soft">No libs published yet.</li>`;
+        return;
+      }
+      for (const l of libs) {
+        const li = document.createElement("li");
+        li.className = "border-b border-line py-3 last:border-b-0";
+        li.innerHTML = `
+          <div class="flex items-center justify-between">
+            <a class="text-brand hover:underline"><code class="rounded bg-line/50 px-1"></code></a>
+            <span class="text-ink-soft"></span>
+          </div>
+          <p class="mt-1 text-ink-soft"></p>`;
+        li.querySelector("a").href = "/lib/" + encodeURIComponent(l.name);
+        li.querySelector("code").textContent = l.name;
+        li.querySelector("div > span").textContent = "v" + l.version;
+        li.querySelector("p").textContent = l.doc ?? "";
+        rows.appendChild(li);
+      }
+    }
+
+    $("claim-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hide("claim-error");
+      try {
+        await api("/account/claims", {
+          method: "POST",
+          body: JSON.stringify({ segment: $("claim-segment").value.trim() }),
+        });
+        $("claim-segment").value = "";
+        await loadClaims();
+      } catch (err) { failIn("claim-error", err.message); }
+    });
+
+    async function loadTokens() {
+      const { tokens } = await api("/account/tokens");
+      const rows = $("token-rows");
+      rows.innerHTML = "";
+      if (tokens.length === 0) {
+        rows.innerHTML = `<tr><td colspan="4" class="py-3 text-ink-soft">No tokens yet.</td></tr>`;
+        return;
+      }
+      for (const t of tokens) {
+        const tr = document.createElement("tr");
+        tr.className = "border-b border-line";
+        tr.innerHTML = `
+          <td class="py-2"></td>
+          <td class="py-2 text-ink-soft"></td>
+          <td class="py-2 text-ink-soft"></td>
+          <td class="py-2 text-right"><button class="rounded border border-line px-2 py-1 text-xs hover:text-red-600">Revoke</button></td>`;
+        tr.children[0].textContent = t.label ?? "—";
+        tr.children[1].textContent = (t.created_at ?? "").slice(0, 10);
+        tr.children[2].textContent = t.last_used ? t.last_used.slice(0, 10) : "never";
+        tr.querySelector("button").addEventListener("click", async () => {
+          await api("/account/tokens/" + t.id, { method: "DELETE" });
+          await loadTokens();
+        });
+        rows.appendChild(tr);
+      }
+    }
+
+    $("mint-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hide("account-error");
+      const { token } = await api("/account/tokens", {
+        method: "POST",
+        body: JSON.stringify({ label: $("mint-label").value || null }),
+      });
+      $("minted-token").textContent = token;
+      show("minted");
+      $("mint-label").value = "";
+      await loadTokens();
+    });
+
+    $("copy-token").addEventListener("click", () => {
+      navigator.clipboard.writeText($("minted-token").textContent);
+    });
+
+    $("sign-out").addEventListener("click", signOut);
+
+    // ---- boot ------------------------------------------------------------
+    captureHash();
+    if (session()) loadAccount().catch((e) => fail(e.message));
+    else show("signed-out");
+  </script>
+</BaseLayout>

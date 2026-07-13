@@ -34,8 +34,25 @@ const allIds = new Set((await getCollection("libs")).map((l) => l.id));
       <div class="mt-6 rounded-lg border border-line bg-paper-soft p-4">
         <p class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Install</p>
         <pre class="mt-2 overflow-x-auto text-sm"><code>xeto install {name}</code></pre>
-        <p class="mt-2 text-xs text-ink-soft">CLI install is coming with the registry backend.</p>
       </div>
+
+      <!-- version history, live from the registry API (hidden if the
+           lib isn't in the registry yet) -->
+      <section id="versions-section" class="mt-8 hidden" data-lib={name}>
+        <h2 class="text-xl font-semibold">Versions</h2>
+        <div class="mt-3 overflow-hidden rounded-lg border border-line">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
+                <th class="px-4 py-2.5 font-semibold">Version</th>
+                <th class="px-4 py-2.5 font-semibold">Published</th>
+                <th class="px-4 py-2.5 font-semibold">Downloads</th>
+              </tr>
+            </thead>
+            <tbody id="versions-rows"></tbody>
+          </table>
+        </div>
+      </section>
     </div>
 
     <!-- metadata sidebar -->
@@ -127,4 +144,25 @@ const allIds = new Set((await getCollection("libs")).map((l) => l.id));
       Browse {name} in the explorer →
     </a>
   </section>
+
+  <script>
+    import { libVersions, fmtDate } from "../../lib/registry";
+
+    const section = document.getElementById("versions-section")!;
+    libVersions(section.dataset.lib!)
+      .then((res) => {
+        document.getElementById("versions-rows")!.innerHTML = res.versions
+          .map(
+            (v) => `
+          <tr class="border-b border-line last:border-b-0">
+            <td class="px-4 py-3 font-mono">${v.version}</td>
+            <td class="px-4 py-3 text-ink-soft">${fmtDate(v.published_at)}</td>
+            <td class="px-4 py-3 text-ink-soft">${v.downloads}</td>
+          </tr>`,
+          )
+          .join("");
+        section.classList.remove("hidden");
+      })
+      .catch(() => {}); // not in the registry yet — section stays hidden
+  </script>
 </BaseLayout>

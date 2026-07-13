@@ -1,0 +1,13 @@
+# Netlify routing rules (copied verbatim into dist/ by Astro)
+
+# explorer SPA lives at a directory index
+/explorer/    /explorer/index.html    301
+/explorer     /explorer/index.html    301
+
+# marketing intro moved to /learn; /docs is the language reference
+/docs/        /docs/lang              301
+/docs         /docs/lang              301
+
+# registry lib detail pages are client-rendered from the API — rewrite
+# every /lib/{name} path to the single lib page (200 = rewrite, not redirect)
+/lib/*        /lib/index.html         200
