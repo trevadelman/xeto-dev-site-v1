@@ -22,10 +22,11 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
           .map(
             (o) => `
           <a href="/orgs/${encodeURIComponent(o.name)}" class="block rounded-lg border border-line p-5 hover:border-brand">
-            <div class="flex items-center justify-between">
-              <h2 class="font-semibold text-ink">${o.name}</h2>
-              <span class="font-mono text-xs text-ink-soft">${o.prefixes.map((p) => p + ".*").join(", ")}</span>
+            <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <h2 class="break-words font-semibold text-ink">${o.name}</h2>
+              <span class="break-all font-mono text-xs text-ink-soft">${o.prefixes.map((p) => p + ".*").join(", ")}</span>
             </div>
+
             <p class="mt-2 text-sm text-ink-soft">${o.description}</p>
             <p class="mt-3 text-xs text-ink-soft">${o.lib_count} ${o.lib_count === 1 ? "library" : "libraries"}</p>
           </a>`,

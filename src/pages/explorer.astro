@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+// The explorer SPA (public/explorer-app/) embedded inside the site chrome.
+// The SPA keeps its own hash routing; we forward the outer hash into the
+// iframe on load and mirror the iframe's hash back so deep links and
+// back/forward keep working from the /explorer URL.
+---
+
+<BaseLayout title="Explorer — xeto.dev" description="Browse Xeto namespace bundles, libs, and specs">
+  <div class="flex flex-wrap items-end justify-between gap-3">
+    <div>
+      <h1 class="text-3xl font-bold tracking-tight">Explorer</h1>
+      <p class="mt-2 max-w-2xl text-ink-soft">
+        Every registry library, live in your browser — click through libs,
+        specs, slots, and instances. Press <kbd class="rounded border border-line bg-paper-soft px-1.5 py-0.5 font-mono text-xs">⌘K</kbd>
+        inside to search across the whole namespace.
+      </p>
+    </div>
+    <a href="/explorer-app/index.html" class="text-sm font-medium text-brand hover:underline">
+      Open full screen ↗
+    </a>
+  </div>
+
+  <iframe
+    id="explorer-frame"
+    title="Xeto explorer"
+    class="mt-6 h-[calc(100dvh-16rem)] min-h-96 w-full rounded-lg border border-line"
+  ></iframe>
+
+
+  <script is:inline>
+    const frame = document.getElementById("explorer-frame");
+    frame.src = "/explorer-app/index.html?embed" + location.hash;
+
+    // outer hash change (e.g. in-page link) -> drive the SPA
+    window.addEventListener("hashchange", () => {
+      if (frame.contentWindow.location.hash !== location.hash)
+        frame.contentWindow.location.hash = location.hash;
+    });
+
+    // SPA hash change -> mirror into the outer URL without adding history
+    window.addEventListener("message", (e) => {
+      if (e.origin !== location.origin || typeof e.data?.explorerHash !== "string") return;
+      if (e.data.explorerHash !== location.hash)
+        history.replaceState(null, "", location.pathname + e.data.explorerHash);
+    });
+  </script>
+</BaseLayout>
+
+<style>
+  /* the explorer wants the full viewport; trim the main padding on this page */
+  :global(main) {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+</style>

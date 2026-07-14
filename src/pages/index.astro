@@ -11,7 +11,7 @@ let libCount = 0;
 let packKb = 0;
 try {
   const manifest = JSON.parse(
-    readFileSync(new URL("../../public/explorer/bundles/xeto/manifest.json", import.meta.url), "utf-8")
+    readFileSync(new URL("../../public/explorer-app/bundles/xeto/manifest.json", import.meta.url), "utf-8")
   );
   libCount = manifest.libs?.length ?? 0;
   packKb = Math.round((manifest.size ?? 0) / 1024);

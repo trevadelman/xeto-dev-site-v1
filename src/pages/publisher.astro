@@ -9,8 +9,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <div id="notfound" class="mt-6 hidden text-ink-soft">Publisher not found.</div>
 
   <div id="pub" class="hidden">
-    <h1 id="pub-name" class="text-3xl font-bold tracking-tight"></h1>
-    <p id="pub-handle" class="mt-1 font-mono text-sm text-ink-soft"></p>
+    <h1 id="pub-name" class="break-words text-3xl font-bold tracking-tight"></h1>
+    <p id="pub-handle" class="mt-1 break-all font-mono text-sm text-ink-soft"></p>
 
     <div class="mt-4 flex flex-wrap gap-4 text-sm">
       <div id="pub-orgs-wrap" class="hidden">
@@ -19,14 +19,15 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </div>
       <div id="pub-ns-wrap" class="hidden">
         <span class="text-ink-soft">Namespaces:</span>
-        <span id="pub-ns" class="font-mono"></span>
+        <span id="pub-ns" class="break-all font-mono"></span>
       </div>
     </div>
 
     <section class="mt-10">
       <h2 class="text-xl font-semibold">Published libraries</h2>
-      <div class="mt-4 overflow-hidden rounded-lg border border-line">
-        <table class="w-full text-sm">
+      <div class="mt-4 overflow-x-auto rounded-lg border border-line">
+        <table class="w-full min-w-[36rem] text-sm">
+
           <thead>
             <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
               <th class="px-4 py-2.5 font-semibold">Library</th>

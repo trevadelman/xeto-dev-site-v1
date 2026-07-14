@@ -10,19 +10,32 @@ const { title, description = "xeto.dev — the registry for Xeto typed-data libr
   Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
+// nav groups render as hover/click dropdowns; plain items as direct links
 const nav = [
-  { href: "/libs", label: "Libraries" },
-  { href: "/domains", label: "Domains" },
-  { href: "/orgs", label: "Organizations" },
-  { href: "/learn", label: "Learn" },
-  { href: "/docs/lang", label: "Docs" },
+  {
+    label: "Browse",
+    items: [
+      { href: "/libs", label: "Libraries" },
+      { href: "/domains", label: "Domains" },
+      { href: "/orgs", label: "Organizations" },
+    ],
+  },
+  {
+    label: "Learn",
+    items: [
+      { href: "/learn", label: "Xeto 101" },
+      { href: "/docs/lang", label: "Docs" },
+    ],
+  },
   { href: "/explorer/", label: "Explorer" },
 ];
 
-
 // active section for nav highlighting, e.g. /libs/ph -> /libs
 const path = Astro.url.pathname;
-const isActive = (href: string) => path === href || path.startsWith(href.replace(/\/$/, "") + "/") || path === href.replace(/\/$/, "");
+const isActive = (href: string) =>
+  path === href || path.startsWith(href.replace(/\/$/, "") + "/") || path === href.replace(/\/$/, "");
+const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(i.href));
+
 ---
 
 <!doctype html>
@@ -36,11 +49,8 @@ const isActive = (href: string) => path === href || path.startsWith(href.replace
     <link rel="icon" type="image/png" href="/xeto-logo.png" />
     <script is:inline>
       // set theme before paint to avoid flash; persisted in localStorage
-      const saved = localStorage.getItem("theme");
-      const theme =
-        saved ??
-        (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-      document.documentElement.dataset.theme = theme;
+      // light by default; user's explicit choice persists in localStorage
+      document.documentElement.dataset.theme = localStorage.getItem("theme") ?? "light";
     </script>
   </head>
   <body class="flex min-h-dvh flex-col font-sans antialiased">
@@ -52,51 +62,124 @@ const isActive = (href: string) => path === href || path.startsWith(href.replace
         </a>
         <div class="flex items-center gap-3">
           <nav class="hidden items-center gap-5 text-sm sm:flex">
-            {nav.map((item) => (
-              <a
-                href={item.href}
-                class:list={[
-                  "hover:text-brand",
-                  isActive(item.href) ? "font-medium text-brand" : "text-ink-soft",
-                ]}
-              >
-                {item.label}
-              </a>
-            ))}
+            {nav.map((item) =>
+              item.items ? (
+                <div class="group relative" data-dropdown>
+                  <span
+                    data-dropdown-trigger
+                    class:list={[
+                      "flex cursor-default select-none items-center gap-1.5 py-1 hover:text-brand",
+                      isGroupActive(item.items) ? "font-medium text-brand" : "text-ink-soft",
+                    ]}
+                  >
+                    {item.label}
+                    <svg
+                      class="h-3 w-3 opacity-60 transition-transform duration-150 group-hover:rotate-180"
+                      viewBox="0 0 12 12"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M3 4.5 6 7.5 9 4.5" />
+                    </svg>
+                  </span>
+                  {/* pt-2 bridges the hover gap between trigger and panel;
+                      [.open]& handles touch devices where hover doesn't apply */}
+                  <div class="invisible absolute left-0 pt-2 opacity-0 transition-all duration-150 group-hover:visible group-hover:opacity-100 group-[.open]:visible group-[.open]:opacity-100">
+
+                    <div class="min-w-44 rounded-lg border border-line bg-paper py-2 shadow-lg shadow-black/5">
+                      {item.items.map((sub) => (
+                        <a
+                          href={sub.href}
+                          class:list={[
+                            "mx-2 block whitespace-nowrap rounded px-3 py-2 hover:bg-paper-soft hover:text-brand",
+                            isActive(sub.href) ? "font-medium text-brand" : "text-ink-soft",
+                          ]}
+                        >
+                          {sub.label}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+              ) : (
+                <a
+                  href={item.href}
+                  class:list={[
+                    "hover:text-brand",
+                    isActive(item.href!) ? "font-medium text-brand" : "text-ink-soft",
+                  ]}
+                >
+                  {item.label}
+                </a>
+              ),
+            )}
           </nav>
           <button
-            id="theme-toggle"
+            id="search-toggle"
             type="button"
-            aria-label="Toggle theme"
-            class="rounded border border-line px-2 py-1 text-ink-soft hover:text-brand"
+            aria-label="Search libraries"
+            class="flex h-8 w-8 items-center justify-center rounded border border-line text-ink-soft transition hover:border-brand hover:text-brand"
           >
-            ◐
+            <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <circle cx="7" cy="7" r="4.5" />
+              <path d="m10.5 10.5 3 3" />
+            </svg>
           </button>
+
           <button
             id="menu-toggle"
             type="button"
             aria-label="Open menu"
             aria-expanded="false"
-            class="rounded border border-line px-2.5 py-1 text-ink-soft hover:text-brand sm:hidden"
+            class="flex h-8 w-8 items-center justify-center rounded border border-line text-ink-soft transition hover:border-brand hover:text-brand sm:hidden"
           >
             ☰
           </button>
         </div>
       </div>
-      <!-- mobile nav panel -->
-      <nav id="mobile-nav" class="hidden border-t border-line sm:hidden">
-        {nav.map((item) => (
-          <a
-            href={item.href}
-            class:list={[
-              "block px-6 py-3 text-sm",
-              isActive(item.href) ? "font-medium text-brand" : "text-ink-soft",
-            ]}
-          >
-            {item.label}
-          </a>
-        ))}
+      <!-- mobile nav panel: overlays content below the sticky header -->
+      <nav
+        id="mobile-nav"
+        class="absolute inset-x-0 top-full hidden border-b border-t border-line bg-paper pb-3 shadow-lg shadow-black/5 sm:hidden"
+      >
+
+        {nav.map((item) =>
+          item.items ? (
+            <div>
+              <p class="px-6 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+                {item.label}
+              </p>
+              {item.items.map((sub) => (
+                <a
+                  href={sub.href}
+                  class:list={[
+                    "block px-6 py-2 text-sm",
+                    isActive(sub.href) ? "font-medium text-brand" : "text-ink-soft",
+                  ]}
+                >
+                  {sub.label}
+                </a>
+              ))}
+            </div>
+          ) : (
+            <a
+              href={item.href}
+              class:list={[
+                "block px-6 py-3 text-sm",
+                isActive(item.href!) ? "font-medium text-brand" : "text-ink-soft",
+              ]}
+            >
+              {item.label}
+            </a>
+          ),
+        )}
       </nav>
+
     </header>
 
     <main class="mx-auto w-full max-w-6xl flex-1 px-6 py-10">
@@ -105,28 +188,139 @@ const isActive = (href: string) => path === href || path.startsWith(href.replace
 
     <footer class="mt-auto border-t border-line">
       <div
-        class="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-8 text-sm text-ink-soft sm:flex-row sm:items-center sm:justify-between"
+        class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-8 text-left text-sm text-ink-soft"
       >
         <p>&copy; {new Date().getFullYear()} XetoBase™. All rights reserved.</p>
-        <p>xeto.dev — the registry for Xeto typed-data libraries</p>
+        <div class="flex items-center gap-4">
+          <p class="hidden sm:block">xeto.dev — the registry for Xeto typed-data libraries</p>
+          <button
+            id="theme-toggle"
+            type="button"
+            aria-label="Toggle theme"
+            class="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded border border-line px-2.5 text-ink-soft transition hover:border-brand hover:text-brand"
+          >
+            ◐ <span data-theme-label class="hidden sm:inline"></span>
+          </button>
+
+
+        </div>
       </div>
+
     </footer>
+
+    <!-- header search: minimal palette over the registry lib search API -->
+    <div id="search-backdrop" class="fixed inset-0 z-30 hidden bg-black/20 backdrop-blur-sm">
+      <div class="mx-auto mt-24 w-full max-w-lg px-6">
+        <div class="overflow-hidden rounded-lg border border-line bg-paper shadow-lg shadow-black/10">
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Search libraries…"
+            autocomplete="off"
+            class="w-full border-b border-line bg-transparent px-4 py-3 text-sm outline-none placeholder:text-ink-soft"
+          />
+          <div id="search-results" class="max-h-80 overflow-y-auto py-1.5"></div>
+        </div>
+      </div>
+    </div>
 
 
 
     <script is:inline>
+      // touch support for hover dropdowns: first tap opens, tap elsewhere closes.
+      // pointerType check keeps mouse behavior hover-only (no click stickiness).
+      document.querySelectorAll("[data-dropdown]").forEach((dd) => {
+        dd.querySelector("[data-dropdown-trigger]").addEventListener("pointerup", (e) => {
+          if (e.pointerType !== "touch") return;
+          const wasOpen = dd.classList.contains("open");
+          document.querySelectorAll("[data-dropdown].open").forEach((o) => o.classList.remove("open"));
+          if (!wasOpen) dd.classList.add("open");
+        });
+      });
+      document.addEventListener("pointerup", (e) => {
+        if (!e.target.closest("[data-dropdown]"))
+          document.querySelectorAll("[data-dropdown].open").forEach((o) => o.classList.remove("open"));
+      });
+
       const menuBtn = document.getElementById("menu-toggle");
+
       menuBtn?.addEventListener("click", () => {
         const panel = document.getElementById("mobile-nav");
         const open = panel.classList.toggle("hidden");
         menuBtn.setAttribute("aria-expanded", String(!open));
       });
-      document.getElementById("theme-toggle")?.addEventListener("click", () => {
+      // theme toggle labels name the mode a click switches to
+      const themeLabels = () => {
+        const dark = document.documentElement.dataset.theme === "dark";
+        document.querySelectorAll("[data-theme-label]").forEach((el) => {
+          el.textContent = dark ? "Light mode" : "Dark mode";
+        });
+      };
+      const flipTheme = () => {
         const el = document.documentElement;
         const next = el.dataset.theme === "dark" ? "light" : "dark";
         el.dataset.theme = next;
         localStorage.setItem("theme", next);
+        themeLabels();
+      };
+      themeLabels();
+      document.getElementById("theme-toggle")?.addEventListener("click", flipTheme);
+
+
+    </script>
+
+
+    <script>
+      import { searchLibs } from "../lib/registry";
+
+      const backdrop = document.getElementById("search-backdrop")!;
+      const input = document.getElementById("search-input") as HTMLInputElement;
+      const results = document.getElementById("search-results")!;
+      let debounce: number;
+
+      function openSearch() {
+        backdrop.classList.remove("hidden");
+        input.value = "";
+        results.innerHTML = "";
+        input.focus();
+      }
+      function closeSearch() {
+        backdrop.classList.add("hidden");
+      }
+
+      document.getElementById("search-toggle")?.addEventListener("click", openSearch);
+      backdrop.addEventListener("click", (e) => {
+        if (e.target === backdrop) closeSearch();
+      });
+      window.addEventListener("keydown", (e) => {
+        const tag = (document.activeElement as HTMLElement)?.tagName;
+        if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); openSearch(); }
+        else if (e.key === "/" && tag !== "INPUT" && tag !== "TEXTAREA") { e.preventDefault(); openSearch(); }
+        else if (e.key === "Escape") closeSearch();
+      });
+
+      input.addEventListener("input", () => {
+        clearTimeout(debounce);
+        const q = input.value.trim();
+        if (!q) { results.innerHTML = ""; return; }
+        debounce = window.setTimeout(async () => {
+          const { libs } = await searchLibs(q, 8);
+          results.innerHTML =
+            libs.length === 0
+              ? `<p class="px-4 py-3 text-sm text-ink-soft">No libraries match &ldquo;${q.replace(/</g, "&lt;")}&rdquo;</p>`
+              : libs
+                  .map(
+                    (l) => `
+            <a href="/lib/${encodeURIComponent(l.name)}" class="mx-1.5 block rounded px-3 py-2 hover:bg-paper-soft">
+              <span class="font-mono text-sm font-medium text-brand">${l.name}</span>
+              <span class="ml-2 font-mono text-xs text-ink-soft">${l.version}</span>
+              <p class="mt-0.5 truncate text-xs text-ink-soft">${l.doc}</p>
+            </a>`,
+                  )
+                  .join("");
+        }, 200);
       });
     </script>
+
   </body>
 </html>

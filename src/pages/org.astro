@@ -18,8 +18,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <div class="mt-6 grid gap-8 lg:grid-cols-[1fr_16rem]">
       <div>
         <div class="flex flex-wrap items-baseline gap-3">
-          <h1 id="org-name" class="text-3xl font-bold tracking-tight"></h1>
-          <span id="org-prefixes" class="font-mono text-sm text-ink-soft"></span>
+          <h1 id="org-name" class="break-words text-3xl font-bold tracking-tight"></h1>
+          <span id="org-prefixes" class="break-all font-mono text-sm text-ink-soft"></span>
         </div>
         <p id="org-desc" class="mt-4 max-w-2xl text-lg text-ink-soft"></p>
         <p id="org-website-wrap" class="mt-2 hidden">
@@ -28,8 +28,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
         <section class="mt-10">
           <h2 class="text-xl font-semibold">Libraries</h2>
-          <div class="mt-4 overflow-hidden rounded-lg border border-line">
-            <table class="w-full text-sm">
+          <div class="mt-4 overflow-x-auto rounded-lg border border-line">
+            <table class="w-full min-w-[36rem] text-sm">
+
               <thead>
                 <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
                   <th class="px-4 py-2.5 font-semibold">Library</th>

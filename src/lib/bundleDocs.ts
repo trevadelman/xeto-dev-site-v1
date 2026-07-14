@@ -6,7 +6,7 @@ import { marked } from "marked";
 // source the explorer serves. One helper for every doc-rendering page.
 // Resolved from the project root: import.meta.url is unreliable once the
 // netlify adapter relocates build chunks.
-const FILES_ROOT = join(process.cwd(), "public/explorer/bundles/xeto/files/");
+const FILES_ROOT = join(process.cwd(), "public/explorer-app/bundles/xeto/files/");
 
 /** Page names (sans .md) in a bundle lib's files dir, excluding index. */
 export function docPages(lib: string): string[] {

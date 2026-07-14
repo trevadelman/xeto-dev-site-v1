@@ -132,7 +132,7 @@ const allIds = new Set((await getCollection("libs")).map((l) => l.id));
          on small screens, and display:none + lazy keeps it from loading) -->
     <div class="mt-4 hidden overflow-hidden rounded-lg border border-line shadow-sm md:block">
       <iframe
-        src={`/explorer/index.html?embed${explorerHash}`}
+        src={`/explorer-app/index.html?embed${explorerHash}`}
         title={`Xeto explorer — ${name}`}
         class="h-[70vh] w-full"
         loading="lazy"></iframe>

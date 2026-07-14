@@ -691,7 +691,14 @@ function toggleNav(force)
   document.body.classList.toggle("nav-open", force);
 }
 
-window.addEventListener("hashchange", () => { toggleNav(false); route(); });
+window.addEventListener("hashchange", () => {
+  toggleNav(false);
+  route();
+  // keep the wrapping /explorer page's URL in sync when embedded
+  if (embedMode && window.parent !== window)
+    window.parent.postMessage({ explorerHash: location.hash }, location.origin);
+});
+
 
 loadBundleList()
   .then(() => { initPalette(); return route(); })
