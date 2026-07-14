@@ -11,6 +11,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <div id="pub" class="hidden">
     <h1 id="pub-name" class="break-words text-3xl font-bold tracking-tight"></h1>
     <p id="pub-handle" class="mt-1 break-all font-mono text-sm text-ink-soft"></p>
+    <p id="pub-you" class="mt-2 hidden text-sm text-brand">
+      This is you — <a href="/account" class="underline">manage your account</a>
+    </p>
+
 
     <div class="mt-4 flex flex-wrap gap-4 text-sm">
       <div id="pub-orgs-wrap" class="hidden">
@@ -47,6 +51,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   <script>
     import { publisherDetail } from "../lib/registry";
+    import { session, me } from "../lib/session";
 
     const handle =
       new URLSearchParams(location.search).get("handle") ??
@@ -58,6 +63,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       const pub = await publisherDetail(handle);
       el("pub-name").textContent = pub.display_name;
       el("pub-handle").textContent = "@" + pub.handle;
+
+      if (session()) {
+        me().then((account) => {
+          if (account && account.handle === handle) el("pub-you").classList.remove("hidden");
+        });
+      }
+
 
       if (pub.orgs.length > 0) {
         el("pub-orgs").innerHTML = pub.orgs

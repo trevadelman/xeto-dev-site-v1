@@ -22,9 +22,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <span id="org-prefixes" class="break-all font-mono text-sm text-ink-soft"></span>
         </div>
         <p id="org-desc" class="mt-4 max-w-2xl text-lg text-ink-soft"></p>
+        <p id="org-you" class="mt-2 hidden text-sm text-brand">You are a member</p>
         <p id="org-website-wrap" class="mt-2 hidden">
           <a id="org-website" class="text-sm text-brand hover:underline" target="_blank" rel="noopener"></a>
         </p>
+
 
         <section class="mt-10">
           <h2 class="text-xl font-semibold">Libraries</h2>
@@ -59,6 +61,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
   <script>
     import { orgDetail } from "../lib/registry";
+    import { session, me } from "../lib/session";
 
     const name =
       new URLSearchParams(location.search).get("name") ??
@@ -72,6 +75,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       el("org-name").textContent = org.name;
       el("org-prefixes").textContent = org.prefixes.map((p) => p + ".*").join(", ");
       el("org-desc").textContent = org.description;
+
+      if (session()) {
+        me().then((account) => {
+          if (account && account.orgs.includes(name)) el("org-you").classList.remove("hidden");
+        });
+      }
+
       if (org.website) {
         const a = el("org-website") as HTMLAnchorElement;
         a.href = org.website;

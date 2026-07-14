@@ -23,6 +23,7 @@ export interface RegistryVersion {
 
 export interface RegistrySummary extends RegistryVersion {
   name: string;
+  publisher_handle: string | null;
 }
 
 async function get<T>(path: string): Promise<T> {
