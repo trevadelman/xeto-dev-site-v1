@@ -1,0 +1,42 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="Organizations — xeto.dev" description="Organizations publishing Xeto libraries">
+  <h1 class="text-3xl font-bold tracking-tight">Organizations</h1>
+  <p class="mt-3 max-w-2xl text-ink-soft">
+    Namespace owners publishing to the xeto.dev registry.
+  </p>
+
+  <div id="loading" class="mt-8 text-ink-soft">Loading…</div>
+  <div id="orgs" class="mt-8 hidden grid gap-4 sm:grid-cols-2"></div>
+
+  <script>
+    import { orgList } from "../../lib/registry";
+
+    const el = (id: string) => document.getElementById(id)!;
+
+    orgList()
+      .then(({ orgs }) => {
+        el("orgs").innerHTML = orgs
+          .map(
+            (o) => `
+          <a href="/orgs/${encodeURIComponent(o.name)}" class="block rounded-lg border border-line p-5 hover:border-brand">
+            <div class="flex items-center justify-between">
+              <h2 class="font-semibold text-ink">${o.name}</h2>
+              <span class="font-mono text-xs text-ink-soft">${o.prefixes.map((p) => p + ".*").join(", ")}</span>
+            </div>
+            <p class="mt-2 text-sm text-ink-soft">${o.description}</p>
+            <p class="mt-3 text-xs text-ink-soft">${o.lib_count} ${o.lib_count === 1 ? "library" : "libraries"}</p>
+          </a>`,
+          )
+          .join("");
+        el("loading").classList.add("hidden");
+        el("orgs").classList.remove("hidden");
+      })
+      .catch((err) => {
+        console.error(err);
+        el("loading").textContent = "Could not load organizations.";
+      });
+  </script>
+</BaseLayout>

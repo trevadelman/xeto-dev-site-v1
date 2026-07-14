@@ -43,6 +43,40 @@ export function libVersions(name: string): Promise<{ versions: RegistryVersion[]
   return get(`/libs/${encodeURIComponent(name)}/versions`);
 }
 
+export interface RegistryOrg {
+  name: string;
+  description: string;
+  website: string | null;
+  prefixes: string[];
+  lib_count: number;
+}
+
+export interface RegistryOrgDetail extends Omit<RegistryOrg, "lib_count"> {
+  members: { display_name: string; handle: string | null; role: string }[];
+  libs: RegistryLib[];
+}
+
+export interface RegistryPublisher {
+  display_name: string;
+  handle: string;
+  namespaces: string[];
+  orgs: string[];
+  libs: RegistryLib[];
+}
+
+export function orgList(): Promise<{ orgs: RegistryOrg[] }> {
+  return get(`/orgs`);
+}
+
+export function orgDetail(name: string): Promise<RegistryOrgDetail> {
+  return get(`/orgs/${encodeURIComponent(name)}`);
+}
+
+export function publisherDetail(handle: string): Promise<RegistryPublisher> {
+  return get(`/publishers/${encodeURIComponent(handle)}`);
+}
+
+
 export function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
     year: "numeric", month: "short", day: "numeric",

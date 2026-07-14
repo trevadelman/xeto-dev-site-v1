@@ -49,7 +49,38 @@ const API = `${SUPABASE_URL}/functions/v1/api`;
     </div>
 
     <div class="mt-8 max-w-2xl rounded-lg border border-line p-6">
+      <h2 class="text-lg font-semibold">Public profile</h2>
+      <p class="mt-1 text-sm text-ink-soft">
+        Your handle sets your public profile URL:
+        <code class="rounded bg-line/50 px-1">xeto.dev/publishers/&lbrace;handle&rbrace;</code>
+      </p>
+      <p id="profile-error" class="mt-2 hidden text-sm text-red-600"></p>
+      <form id="profile-form" class="mt-4 flex flex-wrap items-center gap-2">
+        <input
+          id="profile-name"
+          type="text"
+          placeholder="Display name"
+          class="w-full max-w-xs rounded border border-line bg-paper px-3 py-2 text-sm"
+        />
+        <span class="font-mono text-sm text-ink-soft">@</span>
+        <input
+          id="profile-handle"
+          type="text"
+          placeholder="handle"
+          class="w-full max-w-xs rounded border border-line bg-paper px-3 py-2 text-sm"
+        />
+        <button
+          type="submit"
+          class="whitespace-nowrap rounded bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+        >
+          Save
+        </button>
+      </form>
+    </div>
+
+    <div class="mt-6 max-w-2xl rounded-lg border border-line p-6">
       <h2 class="text-lg font-semibold">Namespaces</h2>
+
       <p class="mt-1 text-sm text-ink-soft">
         Community prefixes you own — libs publish under
         <code class="rounded bg-line/50 px-1">cc.&lbrace;segment&rbrace;.*</code>.
@@ -218,11 +249,30 @@ const API = `${SUPABASE_URL}/functions/v1/api`;
     async function loadAccount() {
       const me = await api("/account", { method: "POST" });
       $("who").textContent = me.email ?? me.display_name;
+      $("profile-name").value = me.display_name ?? "";
+      $("profile-handle").value = me.handle ?? "";
       await loadClaims();
       await loadLibs();
       await loadTokens();
       show("signed-in");
     }
+
+    $("profile-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hide("profile-error");
+      try {
+        const body = {};
+        const name = $("profile-name").value.trim();
+        const handle = $("profile-handle").value.trim();
+        if (name) body.display_name = name;
+        if (handle) body.handle = handle;
+        const me = await api("/account", { method: "PATCH", body: JSON.stringify(body) });
+        $("who").textContent = me.email ?? me.display_name;
+        $("profile-name").value = me.display_name ?? "";
+        $("profile-handle").value = me.handle ?? "";
+      } catch (err) { failIn("profile-error", err.message); }
+    });
+
 
     async function loadClaims() {
       const { claims } = await api("/account/claims");

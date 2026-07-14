@@ -1,0 +1,98 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+// Publisher profile page — fully client-rendered from the registry API.
+// Served for /publishers/{handle} via a public/_redirects rewrite.
+---
+
+<BaseLayout title="Publisher — xeto.dev">
+  <div id="loading" class="mt-6 text-ink-soft">Loading from the registry…</div>
+  <div id="notfound" class="mt-6 hidden text-ink-soft">Publisher not found.</div>
+
+  <div id="pub" class="hidden">
+    <h1 id="pub-name" class="text-3xl font-bold tracking-tight"></h1>
+    <p id="pub-handle" class="mt-1 font-mono text-sm text-ink-soft"></p>
+
+    <div class="mt-4 flex flex-wrap gap-4 text-sm">
+      <div id="pub-orgs-wrap" class="hidden">
+        <span class="text-ink-soft">Member of:</span>
+        <span id="pub-orgs"></span>
+      </div>
+      <div id="pub-ns-wrap" class="hidden">
+        <span class="text-ink-soft">Namespaces:</span>
+        <span id="pub-ns" class="font-mono"></span>
+      </div>
+    </div>
+
+    <section class="mt-10">
+      <h2 class="text-xl font-semibold">Published libraries</h2>
+      <div class="mt-4 overflow-hidden rounded-lg border border-line">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
+              <th class="px-4 py-2.5 font-semibold">Library</th>
+              <th class="px-4 py-2.5 font-semibold">Version</th>
+              <th class="px-4 py-2.5 font-semibold">Summary</th>
+              <th class="px-4 py-2.5 font-semibold">Downloads</th>
+            </tr>
+          </thead>
+          <tbody id="pub-libs"></tbody>
+        </table>
+        <p id="pub-libs-empty" class="hidden px-4 py-6 text-sm text-ink-soft">
+          No published libraries yet.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    import { publisherDetail } from "../lib/registry";
+
+    const handle =
+      new URLSearchParams(location.search).get("handle") ??
+      decodeURIComponent(location.pathname.replace(/^\/publishers\//, "").replace(/\/$/, ""));
+    const el = (id: string) => document.getElementById(id)!;
+    document.title = `${handle} — xeto.dev`;
+
+    async function load() {
+      const pub = await publisherDetail(handle);
+      el("pub-name").textContent = pub.display_name;
+      el("pub-handle").textContent = "@" + pub.handle;
+
+      if (pub.orgs.length > 0) {
+        el("pub-orgs").innerHTML = pub.orgs
+          .map((o) => `<a href="/orgs/${encodeURIComponent(o)}" class="text-brand hover:underline">${o}</a>`)
+          .join(", ");
+        el("pub-orgs-wrap").classList.remove("hidden");
+      }
+      if (pub.namespaces.length > 0) {
+        el("pub-ns").textContent = pub.namespaces.map((n) => n + ".*").join(", ");
+        el("pub-ns-wrap").classList.remove("hidden");
+      }
+
+      if (pub.libs.length === 0) {
+        el("pub-libs-empty").classList.remove("hidden");
+      } else {
+        el("pub-libs").innerHTML = pub.libs
+          .map(
+            (l) => `
+        <tr class="border-b border-line last:border-b-0 hover:bg-paper-soft">
+          <td class="px-4 py-3"><a href="/lib/${encodeURIComponent(l.name)}" class="font-mono font-medium text-brand hover:underline">${l.name}</a></td>
+          <td class="px-4 py-3 font-mono text-ink-soft">${l.version}</td>
+          <td class="px-4 py-3 text-ink-soft">${l.doc}</td>
+          <td class="px-4 py-3 text-ink-soft">${l.downloads}</td>
+        </tr>`,
+          )
+          .join("");
+      }
+
+      el("loading").classList.add("hidden");
+      el("pub").classList.remove("hidden");
+    }
+
+    load().catch((err) => {
+      console.error(err);
+      el("loading").classList.add("hidden");
+      el("notfound").classList.remove("hidden");
+    });
+  </script>
+</BaseLayout>

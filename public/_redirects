@@ -11,3 +11,8 @@
 # registry lib detail pages are client-rendered from the API — rewrite
 # every /lib/{name} path to the single lib page (200 = rewrite, not redirect)
 /lib/*        /lib/index.html         200
+
+# org and publisher profile pages, same client-rendered pattern
+/orgs/*       /org/index.html         200
+/publishers/* /publisher/index.html   200
+

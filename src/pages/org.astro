@@ -1,0 +1,120 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+// Org detail page — fully client-rendered from the registry API.
+// Served for /orgs/{name} via a public/_redirects rewrite.
+---
+
+<BaseLayout title="Organization — xeto.dev">
+  <nav class="text-sm text-ink-soft">
+    <a href="/orgs" class="hover:text-brand">Organizations</a>
+    <span class="mx-1.5">/</span>
+    <span id="crumb" class="text-ink">…</span>
+  </nav>
+
+  <div id="loading" class="mt-6 text-ink-soft">Loading from the registry…</div>
+  <div id="notfound" class="mt-6 hidden text-ink-soft">Organization not found.</div>
+
+  <div id="org" class="hidden">
+    <div class="mt-6 grid gap-8 lg:grid-cols-[1fr_16rem]">
+      <div>
+        <div class="flex flex-wrap items-baseline gap-3">
+          <h1 id="org-name" class="text-3xl font-bold tracking-tight"></h1>
+          <span id="org-prefixes" class="font-mono text-sm text-ink-soft"></span>
+        </div>
+        <p id="org-desc" class="mt-4 max-w-2xl text-lg text-ink-soft"></p>
+        <p id="org-website-wrap" class="mt-2 hidden">
+          <a id="org-website" class="text-sm text-brand hover:underline" target="_blank" rel="noopener"></a>
+        </p>
+
+        <section class="mt-10">
+          <h2 class="text-xl font-semibold">Libraries</h2>
+          <div class="mt-4 overflow-hidden rounded-lg border border-line">
+            <table class="w-full text-sm">
+              <thead>
+                <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
+                  <th class="px-4 py-2.5 font-semibold">Library</th>
+                  <th class="px-4 py-2.5 font-semibold">Version</th>
+                  <th class="px-4 py-2.5 font-semibold">Summary</th>
+                  <th class="px-4 py-2.5 font-semibold">Downloads</th>
+                </tr>
+              </thead>
+              <tbody id="org-libs"></tbody>
+            </table>
+            <p id="org-libs-empty" class="hidden px-4 py-6 text-sm text-ink-soft">
+              No published libraries yet.
+            </p>
+          </div>
+        </section>
+      </div>
+
+      <aside class="space-y-5 text-sm lg:border-l lg:border-line lg:pl-6">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wide text-ink-soft">Members</p>
+          <ul id="org-members" class="mt-1.5 space-y-1"></ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    import { orgDetail } from "../lib/registry";
+
+    const name =
+      new URLSearchParams(location.search).get("name") ??
+      decodeURIComponent(location.pathname.replace(/^\/orgs\//, "").replace(/\/$/, ""));
+    const el = (id: string) => document.getElementById(id)!;
+    el("crumb").textContent = name;
+    document.title = `${name} — xeto.dev`;
+
+    async function load() {
+      const org = await orgDetail(name);
+      el("org-name").textContent = org.name;
+      el("org-prefixes").textContent = org.prefixes.map((p) => p + ".*").join(", ");
+      el("org-desc").textContent = org.description;
+      if (org.website) {
+        const a = el("org-website") as HTMLAnchorElement;
+        a.href = org.website;
+        a.textContent = org.website;
+        el("org-website-wrap").classList.remove("hidden");
+      }
+
+      el("org-members").innerHTML =
+        org.members.length === 0
+          ? `<li class="text-ink-soft">No members listed.</li>`
+          : org.members
+              .map(
+                (m) => `
+        <li>
+          ${m.handle ? `<a href="/publishers/${encodeURIComponent(m.handle)}" class="text-brand hover:underline">${m.display_name}</a>` : m.display_name}
+          <span class="text-ink-soft"> — ${m.role}</span>
+        </li>`,
+              )
+              .join("");
+
+      if (org.libs.length === 0) {
+        el("org-libs-empty").classList.remove("hidden");
+      } else {
+        el("org-libs").innerHTML = org.libs
+          .map(
+            (l) => `
+        <tr class="border-b border-line last:border-b-0 hover:bg-paper-soft">
+          <td class="px-4 py-3"><a href="/lib/${encodeURIComponent(l.name)}" class="font-mono font-medium text-brand hover:underline">${l.name}</a></td>
+          <td class="px-4 py-3 font-mono text-ink-soft">${l.version}</td>
+          <td class="px-4 py-3 text-ink-soft">${l.doc}</td>
+          <td class="px-4 py-3 text-ink-soft">${l.downloads}</td>
+        </tr>`,
+          )
+          .join("");
+      }
+
+      el("loading").classList.add("hidden");
+      el("org").classList.remove("hidden");
+    }
+
+    load().catch((err) => {
+      console.error(err);
+      el("loading").classList.add("hidden");
+      el("notfound").classList.remove("hidden");
+    });
+  </script>
+</BaseLayout>

@@ -13,10 +13,12 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const nav = [
   { href: "/libs", label: "Libraries" },
   { href: "/domains", label: "Domains" },
+  { href: "/orgs", label: "Organizations" },
   { href: "/learn", label: "Learn" },
   { href: "/docs/lang", label: "Docs" },
   { href: "/explorer/", label: "Explorer" },
 ];
+
 
 // active section for nav highlighting, e.g. /libs/ph -> /libs
 const path = Astro.url.pathname;
@@ -103,12 +105,14 @@ const isActive = (href: string) => path === href || path.startsWith(href.replace
 
     <footer class="mt-auto border-t border-line">
       <div
-        class="mx-auto flex max-w-6xl items-center justify-between px-6 py-8 text-sm text-ink-soft"
+        class="mx-auto flex max-w-6xl flex-col gap-1 px-6 py-8 text-sm text-ink-soft sm:flex-row sm:items-center sm:justify-between"
       >
-        <p>&copy; {new Date().getFullYear()} xeto.dev — a Wooly project</p>
-        <p>rev 1 preview</p>
+        <p>&copy; {new Date().getFullYear()} XetoBase™. All rights reserved.</p>
+        <p>xeto.dev — the registry for Xeto typed-data libraries</p>
       </div>
     </footer>
+
+
 
     <script is:inline>
       const menuBtn = document.getElementById("menu-toggle");
