@@ -21,16 +21,18 @@
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self'; connect-src 'self' https://aberopmtegsusdukrncd.supabase.co; frame-ancestors 'none'"
 
 # The explorer SPA uses inline event handlers; relax script-src for that path
-# only. frame-ancestors 'self' lets library pages iframe it in embed mode.
+# only. frame-ancestors 'self' lets /explorer and library pages iframe it in
+# embed mode.
 [[headers]]
-  for = "/explorer/*"
+  for = "/explorer-app/*"
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'"
 
-# exact-path rule: "/explorer/*" does not match "/explorer/" itself
+# exact-path rule: "/explorer-app/*" does not match "/explorer-app/" itself
 [[headers]]
-  for = "/explorer/"
+  for = "/explorer-app/"
   [headers.values]
     X-Frame-Options = "SAMEORIGIN"
     Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'"
+
