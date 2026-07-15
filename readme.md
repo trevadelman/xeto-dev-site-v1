@@ -14,14 +14,44 @@ git push origin main       # Netlify auto-deploys from main
 ```
 
 Need-to-know:
+- **V1 launch scope** — which routes are public vs hidden vs gated
+  (publishers hidden, signup closed) is defined in `../docs/v1-scope.md`,
+  with its implementation checklist
 - Repo `trevadelman/xeto-dev-site-v1` → Netlify (personal account)
-- Test with `netlify dev`, not `astro dev` — `/lib/{name}`, `/orgs/*`,
-  `/publishers/*` depend on `public/_redirects` rewrites
-- Registry API base URL is `REGISTRY_API` in `src/lib/registry.ts` —
-  change it when xeto.dev DNS fronts Supabase
+- Test with `netlify dev`, not `astro dev` — client-rendered routes
+  (`/lib/*` → `/lib/index.html`, `/orgs/*` → `/org/index.html`,
+  `/publishers/*` → `/publisher/index.html`, note the singular
+  page-folder names) only rewrite correctly per `public/_redirects`
+- Alternative to `netlify dev`: `npm run build && python3
+  scripts/serve.py` serves `dist/` with the same three rewrites, no
+  Netlify CLI needed
+- Registry API base URL is declared **twice** — `REGISTRY_API` in
+  `src/lib/registry.ts` and `SUPABASE_URL`/`API` in
+  `src/lib/session.ts` — update both when xeto.dev DNS fronts Supabase
+- Testing the account/token side locally without burning the
+  magic-link quota (2/hr): sign in once on the production site, copy
+  `localStorage.xd_session` from devtools, paste the same value into
+  localStorage on localhost — same Supabase project/JWT, works
+  identically against the live API (see comment atop `src/lib/session.ts`)
 - Explorer bundle regen is manual and whitelist-only — follow
   `../docs/explorer-integration.md` exactly (output to
   `public/explorer-app/`, run the pre-publish check)
+
+## Pages
+
+| route | source |
+|---|---|
+| `/` | `src/pages/index.astro` |
+| `/learn` | `src/pages/learn.astro` |
+| `/docs/lang`, `/docs/lang/{page}` | `src/pages/docs/lang/` |
+| `/domains`, `/domains/{slug}` | `src/pages/domains/` |
+| `/libs`, `/libs/{id}` | `src/pages/libs/` — curated, static |
+| `/lib/{name}` | `src/pages/lib.astro` — any registry lib, client-rendered |
+| `/orgs`, `/orgs/{name}` | `src/pages/orgs/index.astro`, `src/pages/org.astro` |
+| `/publishers/{handle}` | `src/pages/publisher.astro` |
+| `/account` | `src/pages/account.astro` — magic-link sign-in, tokens, claims |
+| `/explorer` | `src/pages/explorer.astro` — embeds `public/explorer-app/` |
+
 
 ## Registry CLI: publish and install
 

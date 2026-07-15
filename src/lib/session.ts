@@ -74,7 +74,9 @@ export async function sendMagicLink(email: string): Promise<void> {
   const res = await fetch(SUPABASE_URL + "/auth/v1/otp?redirect_to=" + redirect, {
     method: "POST",
     headers: { apikey: ANON_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ email, create_user: true }),
+    // create_user false: signup is closed for V1 launch (docs/v1-scope.md) —
+    // existing accounts can still sign in; strangers get an error
+    body: JSON.stringify({ email, create_user: false }),
   });
   if (!res.ok) throw new Error("Could not send link: " + (await res.json()).msg);
 }

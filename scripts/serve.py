@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Serve dist/ locally honoring the same rewrite rules as public/_redirects,
-so /lib/{name}, /orgs/{name}, /publishers/{handle} work like they do on
-Netlify. Run after `npm run build`:
+so /lib/{name} and /orgs/{name} work like they do on Netlify.
+Run after `npm run build`:
 
     python3 scripts/serve.py [port]
 """
@@ -12,10 +12,10 @@ import sys
 DIST = os.path.join(os.path.dirname(__file__), "..", "dist")
 
 # same rewrite rules as public/_redirects, in order
+# V1: /publishers/* rewrite parked (docs/v1-scope.md) — restore on reopen
 REWRITES = [
     ("/lib/", "/lib/index.html"),
     ("/orgs/", "/org/index.html"),
-    ("/publishers/", "/publisher/index.html"),
 ]
 
 

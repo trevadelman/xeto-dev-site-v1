@@ -96,9 +96,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               .map(
                 (m) => `
         <li>
-          ${m.handle ? `<a href="/publishers/${encodeURIComponent(m.handle)}" class="text-brand hover:underline">${m.display_name}</a>` : m.display_name}
+          ${m.display_name}
           <span class="text-ink-soft"> — ${m.role}</span>
         </li>`,
+        // V1: publisher profiles are hidden (docs/v1-scope.md) — render
+        // member names as plain text; restore the /publishers link on reopen
               )
               .join("");
 

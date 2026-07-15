@@ -9,7 +9,9 @@
 # every /lib/{name} path to the single lib page (200 = rewrite, not redirect)
 /lib/*        /lib/index.html         200
 
-# org and publisher profile pages, same client-rendered pattern
+# org profile pages, same client-rendered pattern
 /orgs/*       /org/index.html         200
-/publishers/* /publisher/index.html   200
+
+# V1: publisher profiles hidden (docs/v1-scope.md) — restore on reopen:
+# /publishers/* /publisher/index.html   200
 

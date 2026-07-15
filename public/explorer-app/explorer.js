@@ -226,12 +226,13 @@ function mdToHtml(md)
   return fan.markdown.Xetodoc.make().toHtml(md);
 }
 
-// doc string from spec meta rendered as xetodoc
+// doc string from spec meta rendered as xetodoc, with shortcut links
+// resolved against the spec's own lib scope
 function docOf(spec)
 {
   const doc = spec.meta().get("doc");
   if (doc == null) return `<span class="muted">&ndash;</span>`;
-  return mdToHtml(doc);
+  return rewriteDocLinks(mdToHtml(doc), spec.lib().name(), null);
 }
 
 // raw doc string (unrendered) for use in a plain-text context like a
@@ -616,30 +617,109 @@ async function showFile(libName, rawUri)
   if (anchor) document.getElementById(anchor)?.scrollIntoView();
 }
 
-// rewrite relative links/images in rendered doc html (e.g. "Libs.md" or
-// "Libs.md#names") from a lib's doc file into explorer routes, so docs
-// authored as plain relative markdown links work unmodified
+// rewrite links/images in rendered doc html into explorer routes, so
+// docs authored with xetodoc shortcut links ("Site", "ph::Equip",
+// "ph.doc::EVSE#evse-port") or relative file links ("Libs.md#names")
+// work unmodified.  libName scopes shortcut resolution; uri is the doc
+// file the html came from (null for spec doc strings, which have no
+// relative-file base)
 function rewriteDocLinks(html, libName, uri)
 {
-  const baseDir = uri.slice(0, uri.lastIndexOf("/") + 1);
+  const baseDir = uri ? uri.slice(0, uri.lastIndexOf("/") + 1) : null;
   const frag = document.createElement("div");
   frag.innerHTML = html;
 
   frag.querySelectorAll("a[href]").forEach(a => {
     const target = a.getAttribute("href");
-    if (/^([a-z]+:|#|\/)/i.test(target)) return; // absolute, anchor, or root-relative - leave as-is
-    const [path, hash] = target.split("#");
-    const resolved = path ? baseDir + path : uri;
-    a.setAttribute("href", href("file", libName, resolved.slice(1)) + (hash ? "#" + hash : ""));
+    if (/^(https?:|mailto:|#|\/)/i.test(target)) return; // true absolute or anchor - leave as-is
+
+    // xetodoc shortcut link resolved against the namespace, e.g.
+    // "Site", "ph::Equip", "equip.navName", "ph.doc::EVSE#evse-port"
+    const resolved = resolveDocLink(target, libName);
+    if (resolved != null) { a.setAttribute("href", resolved); return; }
+
+    // relative file link from a doc file, e.g. "Libs.md#names"
+    if (baseDir != null && !target.includes("::"))
+    {
+      const [path, hash] = target.split("#");
+      const file = path ? baseDir + path : uri;
+      a.setAttribute("href", href("file", libName, file.slice(1)) + (hash ? "#" + hash : ""));
+      return;
+    }
+
+    // unresolvable - neuter so the browser doesn't try it as a URL scheme
+    a.removeAttribute("href");
   });
 
   frag.querySelectorAll("img[src]").forEach(img => {
     const target = img.getAttribute("src");
     if (/^([a-z]+:|\/)/i.test(target)) return;
-    img.setAttribute("src", `${curDir()}files/${libName}${baseDir}${target}`);
+    img.setAttribute("src", `${curDir()}files/${libName}${baseDir ?? "/"}${target}`);
   });
 
   return frag.innerHTML;
+}
+
+// resolve a xetodoc shortcut link target to an explorer route, or null.
+// Mirrors haxall xetodoc::DocLinker: parse "libName::docName.slotName#frag"
+// then try func, lib index, spec, instance, and chapter in that order,
+// all against the active bundle's live namespace
+function resolveDocLink(target, scopeLibName)
+{
+  // parse: "::" then trailing "#frag" then ".slotName"
+  let x = target, libName = null, frag = null, slotName = null;
+  const colons = x.indexOf("::");
+  if (colons >= 0) { libName = x.slice(0, colons); x = x.slice(colons + 2); }
+  const pound = x.lastIndexOf("#");
+  if (pound >= 0) { frag = x.slice(pound + 1); x = x.slice(0, pound); }
+  const dot = x.indexOf(".");
+  if (dot >= 0) { slotName = x.slice(dot + 1); x = x.slice(0, dot); }
+  const docName = x;
+
+  const ns = curNs();
+  const lib = ns.hasLib(libName ?? scopeLibName) ? ns.lib(libName ?? scopeLibName) : null;
+  if (lib == null) return null;
+
+  // function shortcut, e.g. "now()"
+  if (docName.endsWith("()"))
+  {
+    const qname = `${lib.name()}::Funcs.${docName.slice(0, -2)}`;
+    return ns.spec(qname, false) != null ? href("spec", qname) : null;
+  }
+
+  // lib index
+  if (docName === "index") return href("lib", lib.name());
+
+  // spec in lib or its depends (slotName appends to qname), e.g.
+  // "Equip" or "equip.navName"
+  const spec = resolveSpecLink(lib, docName);
+  if (spec != null)
+  {
+    const qname = spec.qname() + (slotName != null && slotName !== "md" ? "." + slotName : "");
+    return ns.spec(qname, false) != null ? href("spec", qname) : null;
+  }
+
+  // instance in lib
+  if (lib.instance(docName, false) != null) return href("instance", lib.name(), docName);
+
+  // chapter: a "/{docName}.md" doc file listed in the manifest
+  const file = `/${docName}.md`;
+  if (curManifest().files?.[lib.name()]?.includes(file))
+    return href("file", lib.name(), file.slice(1)) + (frag ? "#" + frag : "");
+
+  return null;
+}
+
+// spec by simple name in a lib or its transitive depends - mirrors
+// DocLinker.resolveSpec: the lib's own spec wins, otherwise a unique
+// type match among the depend closure
+function resolveSpecLink(lib, name)
+{
+  const own = lib.spec(name, false);
+  if (own != null) return own;
+  const depends = dependClosure(curNs(), lib.name(), new Map());
+  const matches = allTypes().filter(t => t.name() === name && depends.has(t.lib().name()));
+  return matches.length === 1 ? matches[0] : null;
 }
 
 //////////////////////////////////////////////////////////////////////////
