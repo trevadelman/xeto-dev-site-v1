@@ -1,25 +1,48 @@
 /*
   Xeto Studio Explorer styles.
+
+  Palette mirrors xeto.dev's design tokens (site-v1/src/styles/global.css)
+  so the explorer looks native whether run standalone or embedded in an
+  iframe on the site. Dark mode follows the same [data-theme="dark"]
+  attribute convention - the host page sets it on <html>; when embedded
+  standalone (fan xetoExplorer), the toggle at the bottom of the nav
+  flips it locally and persists to localStorage.
 */
 :root {
-  --text:       #16181d;
-  --muted:      #6b7280;
-  --accent:     #6846cb;
-  --accent-ink: #533ba3;
-  --accent-tint: #efe9fb;
-  --border:     #e4e6eb;
-  --bg:         #ffffff;
-  --bg-subtle:  #f7f7fb;
-  --bg-sidebar: #fafafc;
-  --bg-hover:   #f1f0fd;
+  --brand:       #6846cb;
+  --brand-soft:  #8b6fe0;
+  --brand-faint: #efeafc;
+
+  --paper:      #ffffff;
+  --paper-soft: #f7f6fb;
+  --ink:        #1c1a26;
+  --ink-soft:   #5d5a6e;
+  --line:       #e5e2ef;
+
   --shadow-sm:  0 1px 2px rgba(16,20,30,0.06);
   --shadow-md:  0 4px 16px rgba(16,20,30,0.08);
   --radius:     8px;
 }
+[data-theme="dark"] {
+  --brand:       #8b6fe0;
+  --brand-soft:  #a78ff0;
+  --brand-faint: #2a2140;
+
+  --paper:      #14121c;
+  --paper-soft: #1c1927;
+  --ink:        #edeaf6;
+  --ink-soft:   #a29dba;
+  --line:       #2e2a3e;
+
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md:  0 4px 16px rgba(0,0,0,0.4);
+}
 * { box-sizing: border-box; }
+html { color-scheme: light; }
+html[data-theme="dark"] { color-scheme: dark; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
-  font-size: 14px; color: var(--text); background: var(--bg);
+  font-size: 14px; color: var(--ink); background: var(--paper);
   margin: 0; display: flex; flex-direction: column; height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -29,72 +52,128 @@ h1 {
 }
 h3 {
   font-size: 0.72em; font-weight: 650; text-transform: uppercase;
-  letter-spacing: 0.08em; color: var(--muted); margin: 2em 0 0.6em;
+  letter-spacing: 0.08em; color: var(--ink-soft); margin: 2em 0 0.6em;
 }
-a { color: var(--accent-ink); text-decoration: none; cursor: pointer; }
+a { color: var(--brand); text-decoration: none; cursor: pointer; }
 a:hover { text-decoration: underline; }
 code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.9em; background: var(--bg-subtle);
+  font-size: 0.9em; background: var(--paper-soft);
   padding: 0.1em 0.35em; border-radius: 4px;
 }
 pre {
-  background: var(--bg-subtle); padding: 0.75em 1em;
+  background: var(--paper-soft); padding: 0.75em 1em;
   border-radius: var(--radius); overflow: auto;
 }
 pre code { background: none; padding: 0; }
 blockquote {
-  border-left: 3px solid var(--border); margin-left: 0;
-  padding-left: 1em; color: var(--muted);
+  border-left: 3px solid var(--line); margin-left: 0;
+  padding-left: 1em; color: var(--ink-soft);
 }
+
+/* tables: borderless rows over dense grids - easier to scan long slot/spec
+   lists, and the look matches the site's markdown table styling */
 table {
-  border-collapse: collapse; width: 100%; background: var(--bg);
-  border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;
+  border-collapse: collapse; width: 100%; background: var(--paper);
 }
 th {
-  font-size: 0.78em; font-weight: 650; text-align: left; color: var(--muted);
-  background: var(--bg-subtle); padding: 0.55em 0.85em;
-  border-bottom: 1px solid var(--border);
+  font-size: 0.72em; font-weight: 650; text-transform: uppercase;
+  letter-spacing: 0.05em; text-align: left; color: var(--ink-soft);
+  padding: 0.5em 0.85em; border-bottom: 1px solid var(--line);
 }
 td {
-  padding: 0.55em 0.85em; text-align: left; vertical-align: top;
-  border-bottom: 1px solid var(--border);
+  padding: 0.6em 0.85em; text-align: left; vertical-align: top;
+  border-bottom: 1px solid var(--line);
 }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover, tr:has(td):hover { background: var(--bg-hover); }
-table table { margin: 0; border: none; border-radius: 0; }
+tbody tr:hover { background: var(--paper-soft); }
+table table { margin: 0; }
+table table td, table table th { padding: 0.3em 0.5em; }
 table table tr:hover { background: none; }
-.muted { color: var(--muted); font-size: 0.9em; }
+.muted { color: var(--ink-soft); font-size: 0.9em; }
 .badge {
-  display: inline-block; font-size: 0.72em; font-weight: 600; color: var(--muted);
-  background: var(--bg-subtle); border: 1px solid var(--border);
+  display: inline-block; font-size: 0.72em; font-weight: 600; color: var(--ink-soft);
+  background: var(--paper-soft); border: 1px solid var(--line);
   border-radius: 10px; padding: 0.05em 0.65em; margin-left: 0.4em;
 }
-.badge.virtual { color: var(--accent-ink); background: var(--accent-tint); border-color: transparent; }
-.crumbs { color: var(--muted); font-size: 0.88em; margin-bottom: 0.75em; }
-.crumbs a { color: var(--muted); }
+.badge.virtual { color: var(--brand); background: var(--brand-faint); border-color: transparent; }
+.crumbs { color: var(--ink-soft); font-size: 0.88em; margin-bottom: 0.75em; }
+.crumbs a { color: var(--ink-soft); }
+
+/* inheritance breadcrumb chips on a spec's detail page */
+.type-chain { display: flex; align-items: center; flex-wrap: wrap; gap: 0.3em; margin: 0.5em 0 1em; }
+.type-chain .sep { color: var(--ink-soft); font-size: 0.85em; }
+.type-chain a, .type-chain span.self, .type-chain a.ellipsis {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em;
+  padding: 0.15em 0.6em; border-radius: 12px; border: 1px solid var(--line);
+}
+.type-chain span.self { background: var(--brand-faint); color: var(--brand); font-weight: 650; border-color: transparent; }
+.type-chain a.ellipsis { color: var(--ink-soft); }
+.type-chain a.ellipsis:hover { background: var(--paper-soft); text-decoration: none; }
+
+/* bracketed group of And/Or member specs, replacing a bare sys::And/
+   sys::Or chip in a type chain (see typeChainHtml) */
+.group {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em;
+  color: var(--ink-soft);
+}
+
+
+/* marker slots rendered as badges instead of table rows */
+.markers { display: flex; flex-wrap: wrap; gap: 0.4em; margin: 0.5em 0 1.5em; }
+.markers .badge { margin-left: 0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; cursor: pointer; }
+.markers .badge:hover { background: var(--brand-faint); color: var(--brand); text-decoration: none; }
+
+/* stacked rows: replaces rigid multi-column tables for spec/slot lists so
+   a short name doesn't force a narrow doc column, and a long doc doesn't
+   force a tall row - the doc just flows full width underneath the head */
+.rowlist { display: flex; flex-direction: column; }
+.row-item {
+  padding: 0.65em 0 0.65em; border-bottom: 1px solid var(--line);
+}
+.rowlist .row-item:last-child { border-bottom: none; }
+.row-head {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.92em;
+  display: flex; align-items: baseline; gap: 0.5em; flex-wrap: wrap;
+}
+.row-doc { margin-top: 0.25em; color: var(--ink-soft); font-size: 0.92em; }
+.row-doc:has(> .muted:only-child) { display: none; } /* docOf's muted dash placeholder: hide the empty second line entirely */
+
+/* inherited slots/markers (declared on a base spec, not this one) are
+   visually dimmed so the reader can tell at a glance what this spec
+   actually adds vs receives via inheritance */
+.row-item.dim { opacity: 0.6; }
+.badge.dim { opacity: 0.55; }
+
+/* func signature line, e.g. "(prompt: Str, opts: Dict?) -> Str" */
+.func-sig {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.95em;
+  background: var(--paper-soft); border-radius: 6px; padding: 0.5em 0.75em; margin: 0.5em 0 1em;
+}
+
+
 
 /* buttons */
 .btn {
   display: inline-flex; align-items: center; gap: 0.4em; cursor: pointer;
-  font: inherit; font-size: 0.88em; font-weight: 600; color: var(--text);
-  background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+  font: inherit; font-size: 0.88em; font-weight: 600; color: var(--ink);
+  background: var(--paper); border: 1px solid var(--line); border-radius: 7px;
   padding: 0.45em 0.9em; transition: background 0.1s, border-color 0.1s, box-shadow 0.1s;
 }
-.btn:hover { background: var(--bg-subtle); text-decoration: none; }
-.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.btn:hover { background: var(--paper-soft); text-decoration: none; }
+.btn:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
 .btn-primary {
-  background: var(--accent); border-color: var(--accent); color: white;
+  background: var(--brand); border-color: var(--brand); color: white;
   box-shadow: var(--shadow-sm);
 }
-.btn-primary:hover { background: var(--accent-ink); border-color: var(--accent-ink); }
-.btn-ghost { border-color: transparent; color: var(--muted); }
-.btn-ghost:hover { background: var(--bg-subtle); }
+.btn-primary:hover { background: var(--brand-soft); border-color: var(--brand-soft); }
+.btn-ghost { border-color: transparent; color: var(--ink-soft); }
+.btn-ghost:hover { background: var(--paper-soft); }
 .kbd {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85em;
   background: rgba(255,255,255,0.18); border-radius: 4px; padding: 0.05em 0.4em;
 }
-.btn .kbd { background: var(--bg-subtle); color: var(--muted); }
+.btn .kbd { background: var(--paper-soft); color: var(--ink-soft); }
 
 .page-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -104,33 +183,34 @@ table table tr:hover { background: none; }
 
 #topbar {
   flex-shrink: 0; display: flex; align-items: center; gap: 0.75em;
-  padding: 0.6em 1.1em; background: rgba(255,255,255,0.85); backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--border); box-shadow: var(--shadow-sm); z-index: 5;
+  padding: 0.6em 1.1em; background: color-mix(in srgb, var(--paper) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line); box-shadow: var(--shadow-sm); z-index: 5;
 }
 #topbar .brand {
   font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 0.5em;
-  color: var(--text); cursor: pointer;
+  color: var(--ink); cursor: pointer;
 }
-#topbar .brand:hover { text-decoration: none; color: var(--accent-ink); }
+#topbar .brand:hover { text-decoration: none; color: var(--brand); }
 #topbar .brand::before {
   content: ""; width: 0.7em; height: 0.7em; border-radius: 3px;
-  background: linear-gradient(135deg, var(--accent), #9d7fe8); display: inline-block;
+  background: linear-gradient(135deg, var(--brand), var(--brand-soft)); display: inline-block;
 }
 #topbar .search-btn { margin-left: auto; }
 
 .dropdown { position: relative; flex-shrink: 1; min-width: 0; max-width: 22em; }
 .dropdown-toggle {
-  border-radius: 20px; background: var(--bg-subtle); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  border-radius: 20px; background: var(--paper-soft); font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   max-width: 100%; gap: 0.35em;
 }
 .dropdown-toggle .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .dropdown-toggle .badge { flex-shrink: 0; }
-.dropdown-toggle .chevron { font-size: 0.7em; color: var(--muted); flex-shrink: 0; }
-.dropdown.open .dropdown-toggle { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+.dropdown-toggle .chevron { font-size: 0.7em; color: var(--ink-soft); flex-shrink: 0; }
+.dropdown.open .dropdown-toggle { border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-faint); }
 .dropdown-menu {
   display: none; position: absolute; top: calc(100% + 0.4em); left: 0; min-width: 12em;
   max-width: 26em; max-height: 60vh; overflow-y: auto;
-  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
   box-shadow: var(--shadow-md); padding: 0.35em; z-index: 10;
 }
 .dropdown.open .dropdown-menu { display: block; }
@@ -141,40 +221,51 @@ table table tr:hover { background: none; }
 }
 .dropdown-item .item-name { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .dropdown-item .badge { flex-shrink: 0; margin-left: 0; }
-.dropdown-item:hover { background: var(--bg-hover); }
-.dropdown-item.sel { background: var(--accent-tint); color: var(--accent-ink); font-weight: 650; }
+.dropdown-item:hover { background: var(--paper-soft); }
+.dropdown-item.sel { background: var(--brand-faint); color: var(--brand); font-weight: 650; }
 
+/* width hugs the widest "libname + version badge" currently rendered
+   (measured in JS via sizeNavToContent()) so the main pane gets as much
+   of the viewport as possible; the drag handle can still override it,
+   with that override persisted and taking priority on reload */
 #nav {
-  width: 17em; flex-shrink: 0; overflow: auto;
-  background: var(--bg-sidebar); border-right: 1px solid var(--border);
-  padding: 1em;
+  width: 17em; min-width: 11em; max-width: 26em; flex-shrink: 0; overflow: auto;
+  background: var(--paper-soft); border-right: 1px solid var(--line);
+  padding: 1em; display: flex; flex-direction: column;
 }
+
 #nav input {
   width: 100%; padding: 0.5em 0.7em; margin-bottom: 0.6em;
-  font: inherit; font-size: 0.9em; border: 1px solid var(--border); border-radius: 7px;
-  position: sticky; top: 0; background: var(--bg);
+  font: inherit; font-size: 0.9em; border: 1px solid var(--line); border-radius: 7px;
+  position: sticky; top: 0; background: var(--paper); color: var(--ink);
 }
-#nav input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-tint); }
+#nav input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px var(--brand-faint); }
 #nav ul { list-style: none; padding-left: 0; margin: 0; }
 #nav li a {
   display: flex; align-items: center; justify-content: space-between; gap: 0.5em;
-  color: var(--text); padding: 0.3em 0.6em;
+  color: var(--ink); padding: 0.3em 0.6em;
   border-radius: 6px; font-weight: 500; white-space: nowrap;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.88em;
 }
-#nav li a:hover { background: var(--bg-hover); text-decoration: none; }
-#nav li a.active { background: var(--accent-tint); color: var(--accent-ink); font-weight: 650; }
+#nav li a:hover { background: var(--brand-faint); text-decoration: none; }
+#nav li a.active { background: var(--brand-faint); color: var(--brand); font-weight: 650; }
 #nav li a span:first-child { overflow: hidden; text-overflow: ellipsis; }
 #nav li a .badge { flex-shrink: 0; margin-left: 0; }
-#nav .toolLinks { margin: 0.75em 0; padding-top: 0.6em; border-top: 1px solid var(--border); }
+#nav .toolLinks { margin: 0.75em 0; padding-top: 0.6em; border-top: 1px solid var(--line); }
 #nav .toolLinks a { display: block; padding: 0.3em 0.6em; font-size: 0.9em; border-radius: 6px; }
-#nav .toolLinks a:hover { background: var(--bg-hover); text-decoration: none; }
+#nav .toolLinks a:hover { background: var(--paper-soft); text-decoration: none; }
+
+/* standalone-only theme toggle at the foot of the sidebar (hidden when
+   embedded - the host page's own toggle drives the shared attribute) */
+#nav-theme-toggle {
+  margin-top: auto; padding-top: 0.75em; border-top: 1px solid var(--line);
+}
 
 #nav-resize {
   flex-shrink: 0; width: 5px; margin-left: -5px; cursor: col-resize;
   position: relative; z-index: 1;
 }
-#nav-resize:hover, #nav-resize:active { background: var(--accent-tint); }
+#nav-resize:hover, #nav-resize:active { background: var(--brand-faint); }
 
 #main { flex: 1; overflow: auto; padding: 1.5em 2.25em; min-width: 0; }
 #main > * { max-width: 62em; }
@@ -187,23 +278,23 @@ table table tr:hover { background: none; }
 }
 #palette-backdrop.open { display: flex; }
 #palette {
-  width: 36em; max-width: 90vw; max-height: 60vh; background: var(--bg);
+  width: 36em; max-width: 90vw; max-height: 60vh; background: var(--paper);
   border-radius: 12px; box-shadow: var(--shadow-md), 0 12px 40px rgba(0,0,0,0.2);
   overflow: hidden; display: flex; flex-direction: column;
 }
 #palette input {
-  border: none; border-bottom: 1px solid var(--border); padding: 0.85em 1.1em;
-  font: inherit; font-size: 1.1em; outline: none;
+  border: none; border-bottom: 1px solid var(--line); padding: 0.85em 1.1em;
+  font: inherit; font-size: 1.1em; outline: none; background: var(--paper); color: var(--ink);
 }
 #palette-results { overflow: auto; padding: 0.4em; }
 #palette-results .row {
   padding: 0.55em 0.75em; cursor: pointer; display: flex; align-items: center; gap: 0.6em;
   border-radius: 7px;
 }
-#palette-results .row.sel { background: var(--accent-tint); }
+#palette-results .row.sel { background: var(--brand-faint); }
 #palette-results .kind {
-  font-size: 0.68em; font-weight: 650; text-transform: uppercase; color: var(--accent-ink);
-  background: var(--accent-tint); border-radius: 4px; padding: 0.15em 0.45em; flex-shrink: 0;
+  font-size: 0.68em; font-weight: 650; text-transform: uppercase; color: var(--brand);
+  background: var(--brand-faint); border-radius: 4px; padding: 0.15em 0.45em; flex-shrink: 0;
 }
 #palette-results .name { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
@@ -217,7 +308,7 @@ table table tr:hover { background: none; }
     display: none; position: fixed; top: 0; bottom: 0; left: 0; z-index: 50;
     width: min(20em, 85vw); box-shadow: var(--shadow-md);
   }
-  body.nav-open #nav { display: block; }
+  body.nav-open #nav { display: flex; }
   #nav-backdrop {
     display: none; position: fixed; inset: 0; z-index: 49;
     background: rgba(22,24,29,0.45);

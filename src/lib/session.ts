@@ -53,7 +53,21 @@ export function session(): Session | null {
 
 export function signOut(): void {
   localStorage.removeItem("xd_session");
+  localStorage.removeItem("xd_who");
 }
+
+// cached display label ("@handle" or display name) for the header
+// indicator — read synchronously at boot so it paints in the same
+// frame as the rest of the header instead of flashing an empty box
+// while me() resolves. Reconciled silently once me() returns.
+export function cachedWho(): string | null {
+  return session() ? localStorage.getItem("xd_who") : null;
+}
+
+function cacheWho(account: Me): void {
+  localStorage.setItem("xd_who", "@" + (account.handle ?? account.display_name));
+}
+
 
 export async function sendMagicLink(email: string): Promise<void> {
   const redirect = encodeURIComponent(location.origin + "/account");
@@ -92,7 +106,10 @@ let mePromise: Promise<Me | null> | null = null;
 export function me(): Promise<Me | null> {
   if (!session()) return Promise.resolve(null);
   if (!mePromise) {
-    mePromise = api("/account", { method: "POST" }).catch(() => null);
+    mePromise = api("/account", { method: "POST" })
+      .then((account: Me) => { cacheWho(account); return account; })
+      .catch(() => null);
   }
   return mePromise;
 }
+

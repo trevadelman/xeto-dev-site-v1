@@ -134,8 +134,9 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
           <a
             id="session-indicator"
             href="/account"
-            class="hidden items-center gap-1.5 whitespace-nowrap rounded border border-line px-2.5 py-1 text-sm text-ink-soft transition hover:border-brand hover:text-brand sm:flex"
+            class="invisible hidden items-center gap-1.5 whitespace-nowrap rounded border border-line px-2.5 py-1 text-sm text-ink-soft transition hover:border-brand hover:text-brand sm:flex"
           ></a>
+
 
           <button
             id="menu-toggle"
@@ -279,23 +280,25 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
 
     <script>
       import { searchLibs } from "../lib/registry";
-      import { session, me } from "../lib/session";
+      import { session, me, cachedWho } from "../lib/session";
 
       // header session indicator: signed out -> "Sign in", signed in ->
-      // "@handle" (or display name if no handle claimed yet). Hidden
-      // until resolved so there's no flash of the wrong state.
+      // "@handle" (or display name if no handle claimed yet). Renders
+      // synchronously from the last-known cached label (same paint as
+      // the rest of the header, no flicker) then reconciles silently
+      // once me() resolves — only visibly changes if it was stale/wrong.
       const indicator = document.getElementById("session-indicator")!;
+      indicator.textContent = cachedWho() ?? "Sign in";
+      indicator.classList.remove("invisible");
+
       if (session()) {
         me().then((account) => {
           indicator.textContent = account
             ? "@" + (account.handle ?? account.display_name)
             : "Sign in";
-          indicator.classList.remove("hidden");
         });
-      } else {
-        indicator.textContent = "Sign in";
-        indicator.classList.remove("hidden");
       }
+
 
       const backdrop = document.getElementById("search-backdrop")!;
 

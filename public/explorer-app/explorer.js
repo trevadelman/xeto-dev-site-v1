@@ -214,6 +214,12 @@ function esc(s)
   return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
 }
 
+// escape a string for use inside a double-quoted html attribute
+function escAttr(s)
+{
+  return esc(s).replace(/"/g, "&quot;");
+}
+
 // render xetodoc markdown source to html
 function mdToHtml(md)
 {
@@ -228,10 +234,37 @@ function docOf(spec)
   return mdToHtml(doc);
 }
 
+// raw doc string (unrendered) for use in a plain-text context like a
+// hover tooltip - falls back to empty rather than a muted dash
+function plainDoc(spec)
+{
+  return spec.meta().get("doc") ?? "";
+}
+
+// a single stacked "row" used in place of a rigid table: a compact head
+// line (name/type) with the doc flowing full width underneath - avoids
+// the wasted whitespace and cramped columns of a fixed-column table when
+// names are short but docs are long, or vice versa
+function rowItem(head, doc, dim)
+{
+  return `<div class="row-item${dim ? " dim" : ""}"><div class="row-head">${head}</div><div class="row-doc">${doc}</div></div>`;
+}
+
+
+
 function specLink(spec)
 {
   return `<a href="${href("spec", spec.qname())}">${esc(spec.qname())}</a>`;
 }
+
+// link a slot spec by just its own short name rather than its full
+// "lib::Parent.slot" qname - used in a slot row where the parent is
+// already obvious from context
+function slotLink(slot)
+{
+  return `<a href="${href("spec", slot.qname())}"><code>${esc(slot.name())}</code></a>`;
+}
+
 
 function instanceLink(libName, id)
 {
@@ -353,11 +386,12 @@ function showLib(libName)
     ));
     out.push(`<h3>Depends</h3><p>${links.join(", ")}</p>`);
   }
-  out.push("<h3>Specs</h3><table><tr><th>Name</th><th>Doc</th></tr>");
+  out.push("<h3>Specs</h3><div class=\"rowlist\">");
   lib.specs().each(spec => {
-    out.push(`<tr><td>${specLink(spec)}</td><td>${docOf(spec)}</td></tr>`);
+    out.push(rowItem(specLink(spec), docOf(spec)));
   });
-  out.push("</table>");
+  out.push("</div>");
+
   const instances = lib.instances();
   if (instances.size() > 0)
   {
@@ -379,38 +413,184 @@ function showLib(libName)
   setMain(out.join(""));
 }
 
+// inheritance chain from root to spec itself, e.g. Entity -> Equip -> Meter.
+// stops at (and includes) a compound And/Or base rather than climbing
+// into it - sys::And/sys::Or carry no useful lineage of their own, only
+// their `ofs` members do (rendered as a branch by typeChainHtml)
+function typeChain(spec)
+{
+  const chain = [];
+  for (let s = spec; s != null; s = s.base())
+  {
+    chain.unshift(s);
+    if (s.isCompound()) break;
+  }
+  return chain;
+}
+
+// render a type chain, collapsing the middle behind a clickable "..." when
+// long (standard chains root at sys::Obj and run 5-8 deep, mostly noise) -
+// keeps the immediate lineage visible without a wall of chips
+function typeChainHtml(spec)
+{
+  const chain = typeChain(spec);
+  const last = chain[chain.length - 1];
+
+  // a compound And/Or base renders as a bracketed group of its member
+  // specs (e.g. "[ Motor & Fan ]") in place of the meaningless sys::And/
+  // sys::Or chip - each member is independently clickable
+  const tail = last.isCompound() ? chain.slice(0, -1) : chain;
+  const groupHtml = last.isCompound()
+    ? `<span class="sep">&rarr;</span><span class="group">[ ${
+        last.ofs().map(o => specLink(o)).join(last.isAnd() ? " &amp; " : " | ")
+      } ]</span>`
+    : "";
+
+  if (tail.length <= 4) return chainLinks(tail, spec) + groupHtml;
+
+  // collapse everything above the last 3 ancestors behind a leading "..."
+  // rather than showing the root (almost always the uninteresting
+  // sys::Obj) as its own chip - clicking "..." expands the full hidden
+  // head of the chain in place
+  const shortTail = tail.slice(-3);
+  const collapsedIds = tail.slice(0, -3).map(s => esc(s.qname())).join(",");
+  return `<div class="type-chain" data-full='${esc(collapsedIds)}'>` +
+    `<a class="ellipsis" onclick="expandTypeChain(this)">&hellip;</a>` +
+    `<span class="sep">&rarr;</span>` +
+    chainLinks(shortTail, spec) +
+    groupHtml +
+    `</div>`;
+
+}
+
+function chainLinks(specs, self)
+{
+  return specs.map(s => s === self ? `<span class="self">${esc(s.name())}</span>` : specLink(s))
+    .join('<span class="sep">&rarr;</span>');
+}
+
+
+// expand a collapsed "..." chip in place to the full hidden chain segment
+function expandTypeChain(el)
+{
+  const wrap = el.closest(".type-chain");
+  const qnames = wrap.dataset.full.split(",").filter(Boolean);
+  const links = qnames.map(q => specLink(curNs().spec(q))).join('<span class="sep">&rarr;</span>');
+  el.outerHTML = links;
+}
+
+// meta tags to omit from the generic meta table - either shown elsewhere
+// on the page (doc) or purely structural/synthesized rather than authored
+// modeling info (id, spec, base, type, slots)
+const metaSkip = new Set(["doc", "id", "spec", "base", "type", "slots", "of", "ofs"]);
+
+// spec.metaOwn() rendered as a compact key/value table - this is where
+// modeling info like minVal/maxVal/unit/quantity/pattern/abstract/sealed
+// actually lives, and it was previously invisible in the explorer
+function metaHtml(spec)
+{
+  const rows = [];
+  spec.metaOwn().each((v, n) => {
+    if (metaSkip.has(n)) return;
+    rows.push(`<tr><td><code>${esc(n)}</code></td><td>${valToHtml(v)}</td></tr>`);
+  });
+  if (rows.length === 0) return "";
+  return `<h3>Meta</h3><table>${rows.join("")}</table>`;
+}
+
+// enum item table for a spec where isEnum() is true - key, item spec name,
+// and its own doc
+function enumHtml(spec)
+{
+  const out = [`<h3>Enum Items</h3><div class="rowlist">`];
+  spec.enum().each((item, key) => {
+    out.push(rowItem(`<code>${esc(key)}</code> ${slotLink(item)}`, docOf(item)));
+  });
+  out.push("</div>");
+  return out.join("");
+}
+
+// choice subtype tree for a spec where isChoice() is true, via
+// Namespace.choice() - direct subtypes only (choices are usually shallow,
+// and each subtype is its own clickable spec page for deeper nesting)
+function choiceHtml(spec)
+{
+  const choice = curNs().choice(spec);
+  const subs = choice.subtypes();
+  if (subs.length === 0) return "";
+  return `<h3>Choice Selections</h3><div class="rowlist">${subs.map(s =>
+    rowItem(specLink(s), docOf(s))).join("")}</div>`;
+}
+
+// signature line for a func spec, e.g. "(prompt: Str, opts: Dict?) -> Str"
+function funcSigHtml(spec)
+{
+  const f = spec.func();
+  const params = f.params().map(p => `${esc(p.name())}: ${specLink(p.type())}${p.isMaybe() ? "?" : ""}`);
+  return `<div class="func-sig"><code>(${params.join(", ")}) &rarr; ${specLink(f.returns())}</code></div>`;
+}
+
 function showSpec(qname)
 {
   const spec = curNs().spec(qname);
   const libName = spec.lib().name();
-  const out = [crumbs(`<a href="${href("lib", libName)}">${esc(libName)}</a>`, esc(spec.name())),
+  // a slot's parent (e.g. the "Funcs" type it's declared on) gets its own
+  // breadcrumb link, since slot qnames read as "lib::Parent.slot"
+  const parent = spec.parent();
+  const out = [crumbs(`<a href="${href("lib", libName)}">${esc(libName)}</a>`,
+    ...(parent != null ? [specLink(parent)] : []),
+    esc(spec.name())),
     `<h1>${esc(spec.qname())}</h1>`];
-  if (spec.base() != null) out.push(`<p class="muted">extends ${specLink(spec.base())}</p>`);
+
+
+  if (spec.base() != null) out.push(typeChainHtml(spec));
+
   out.push(docOf(spec));
 
-  const rows = [];
+  if (spec.isFunc()) out.push(funcSigHtml(spec));
+
+  out.push(metaHtml(spec));
+
+  // marker slots render as badge pills with the doc as a hover tooltip and
+  // a link to the marker's own spec page; everything else is a slot row,
+  // dimmed when inherited (not declared directly on this spec) so the
+  // reader can see at a glance what this spec actually adds vs receives
+  // via inheritance
+  const markers = [], rows = [];
   spec.slots().each(slot => {
-    rows.push(`<tr><td><code>${esc(slot.name())}</code></td>` +
-      `<td>${specLink(slot.type())}${slot.isMaybe() ? "?" : ""}</td>` +
-      `<td>${docOf(slot)}</td></tr>`);
+    const inherited = spec.slotOwn(slot.name(), false) == null;
+    if (slot.isMarker())
+      markers.push({ slot, inherited });
+    else
+      rows.push(rowItem(`${slotLink(slot)} ${specLink(slot.type())}${slot.isMaybe() ? "?" : ""}` +
+        (inherited ? ` <span class="muted">from ${esc(slot.parent()?.lib()?.name() ?? slot.lib().name())}</span>` : ""),
+        docOf(slot), inherited));
   });
+  if (markers.length > 0)
+    out.push(`<h3>Markers</h3><div class="markers">${markers.map(({ slot: m, inherited }) =>
+      `<a class="badge${inherited ? " dim" : ""}" href="${href("spec", m.qname())}" title="${escAttr(plainDoc(m))}">${esc(m.name())}</a>`
+
+    ).join("")}</div>`);
+
   if (rows.length > 0)
-    out.push("<h3>Slots</h3><table><tr><th>Name</th><th>Type</th><th>Doc</th></tr>" + rows.join("") + "</table>");
+    out.push(`<h3>Slots</h3><div class="rowlist">${rows.join("")}</div>`);
+
+  if (spec.isEnum()) out.push(enumHtml(spec));
+  if (spec.isChoice()) out.push(choiceHtml(spec));
 
   // subtype query across the active bundle's namespace
   const subs = subtypesOf(spec);
   if (subs.length > 0)
   {
     out.push(`<h3>Subtypes <span class="badge">${subs.length}</span></h3>`);
-    out.push("<table><tr><th>Spec</th><th>Lib</th><th>Doc</th></tr>");
-    subs.forEach(s => {
-      out.push(`<tr><td>${specLink(s)}</td><td class="muted">${esc(s.lib().name())}</td><td>${docOf(s)}</td></tr>`);
-    });
-    out.push("</table>");
+    out.push(`<div class="rowlist">${subs.map(s =>
+      rowItem(`${specLink(s)} <span class="muted">${esc(s.lib().name())}</span>`, docOf(s))).join("")}</div>`);
   }
 
   setMain(out.join(""));
 }
+
+
 
 function showInstance(libName, id)
 {
@@ -566,15 +746,42 @@ function initPalette()
 //////////////////////////////////////////////////////////////////////////
 
 // embed mode (?embed): hides the topbar chrome so the explorer can be
-// iframed inside xeto.dev library pages without double-branding
+// iframed inside a host page (e.g. xeto.dev library pages) without
+// double-branding. theme (light/dark) always follows the same
+// [data-theme] attribute convention as the host site; standalone reads/
+// writes its own localStorage, embedded takes an initial ?theme= param
+// from the host and a postMessage on live toggle (see explorer.astro).
 const embedMode = new URLSearchParams(location.search).has("embed");
 
+function applyTheme(theme)
+{
+  document.documentElement.dataset.theme = theme;
+  if (!embedMode) localStorage.setItem("theme", theme);
+}
+
+function initTheme()
+{
+  if (embedMode)
+  {
+    applyTheme(new URLSearchParams(location.search).get("theme") ?? "light");
+    window.addEventListener("message", e => {
+      if (e.origin === location.origin && e.data?.theme) applyTheme(e.data.theme);
+    });
+  }
+  else
+  {
+    applyTheme(localStorage.getItem("theme") ?? "light");
+  }
+}
+
 function renderTopBar()
+
 {
   if (embedMode) { document.getElementById("topbar").style.display = "none"; return; }
   document.getElementById("topbar").innerHTML =
     `<button class="btn btn-ghost nav-btn" onclick="toggleNav()" aria-label="Toggle navigation">&#9776;</button>` +
-    `<a class="brand" href="/">xeto.dev</a>` +
+    `<a class="brand" href="${bundleHref(bundleNames[0])}">Xeto Studio Explorer</a>` +
+
     `<div id="bundle-switcher" class="dropdown">` +
       `<button class="btn dropdown-toggle" onclick="toggleBundleMenu()">` +
         `<span class="name">${esc(bundleDis(curBundle))}</span>` +
@@ -632,11 +839,28 @@ function renderNav()
 {
   document.getElementById("nav").innerHTML =
     `<input type="text" placeholder="Filter libs\u2026" oninput="renderNavList(this.value)">` +
-    `<div id="navList"></div>`;
+    `<div id="navList"></div>` +
+    (embedMode ? "" :
+      `<div id="nav-theme-toggle"><a class="btn btn-ghost" onclick="toggleTheme()" style="width:100%">` +
+      `\u25d1 <span id="theme-label"></span></a></div>`);
   renderNavList("");
   renderTopBar();
   initNavResize();
+  updateThemeLabel();
 }
+
+function toggleTheme()
+{
+  applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+  updateThemeLabel();
+}
+
+function updateThemeLabel()
+{
+  const el = document.getElementById("theme-label");
+  if (el) el.textContent = document.documentElement.dataset.theme === "dark" ? "Light mode" : "Dark mode";
+}
+
 
 // draggable divider between #nav and #main - width persisted across sessions
 function initNavResize()
@@ -679,7 +903,23 @@ function renderNavList(filter)
   out.push("</ul>");
   document.getElementById("navList").innerHTML = out.join("");
   markActiveNav();
+  sizeNavToContent();
 }
+
+// size #nav to hug the widest "libname + version badge" row currently
+// rendered (clamped by the CSS min/max-width) rather than a fixed guess -
+// maximizes the viewport left for #main. Skipped once the user has
+// manually dragged the divider (that width takes over and persists).
+function sizeNavToContent()
+{
+  if (localStorage.getItem("navWidth")) return;
+  const nav = document.getElementById("nav");
+  let widest = 0;
+  nav.querySelectorAll("#navList li a").forEach(a => { widest = Math.max(widest, a.scrollWidth); });
+  const navPadding = 32; // #nav's left+right padding (1em each side @ 16px)
+  nav.style.width = (widest + navPadding) + "px";
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 // Boot
@@ -694,15 +934,17 @@ function toggleNav(force)
 window.addEventListener("hashchange", () => {
   toggleNav(false);
   route();
-  // keep the wrapping /explorer page's URL in sync when embedded
+  // keep a wrapping host page's URL in sync when embedded
   if (embedMode && window.parent !== window)
     window.parent.postMessage({ explorerHash: location.hash }, location.origin);
 });
 
 
+initTheme();
 loadBundleList()
   .then(() => { initPalette(); return route(); })
   .catch(err => {
     console.error(err);
     document.getElementById("nav").textContent = "ERROR: " + err;
   });
+
