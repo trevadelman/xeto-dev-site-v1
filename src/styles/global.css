@@ -13,14 +13,15 @@
   --color-nav-ink-soft: #beb3e4;
 
   --color-paper: #ffffff;
-  /* one visible step below the page tint so code wells read on lavender too */
-  --color-paper-soft: #dad3ec;
-  /* tinted page background — content surfaces stay paper-white on top.
-     deep enough to give three distinct levels: white / light purp / dark purp */
-  --color-page: #e5e0f2;
+  /* purple accent surface: code wells, chips, table header bands */
+  --color-paper-soft: #e5e0f2;
+  /* neutral near-white page — purple is an accent, not the default ground */
+  --color-page: #f7f6fa;
+  /* lavender band reserved for the home hero */
+  --color-hero: #e5e0f2;
   --color-ink: #1c1a26;
   --color-ink-soft: #4a4759;
-  --color-line: #d6d2e4;
+  --color-line: #dcdae4;
 }
 
 /* dark theme overrides driven by [data-theme="dark"] on <html> */
@@ -38,6 +39,9 @@
   --color-paper: #1d1a29;
   --color-paper-soft: #272238;
   --color-page: #100e17;
+  /* hero band: a clear purple step above the page so the home band reads
+     in dark mode too (mirrors the lavender band in light) */
+  --color-hero: #1e1637;
   --color-ink: #f2f0fa;
   --color-ink-soft: #c2bdd8;
   --color-line: #453f60;
@@ -146,21 +150,40 @@ code {
   transition: opacity 300ms ease, visibility 0s 300ms;
 }
 
-/* typewriter cursor: blinking block that trails the typing */
-.tw-cursor {
-  display: inline-block;
-  width: 0.55em;
-  height: 1.1em;
-  vertical-align: text-bottom;
-  background-color: var(--color-brand);
-  animation: tw-blink 1s steps(2) infinite;
+/* hero stepper: mirrors the code window's tabs — the active step pops
+   (brand dot with halo, full-ink text, slight lift) while the other two
+   recede (faded, slightly shrunk) */
+.hero-step {
+  cursor: pointer;
+  opacity: 0.55;
+  transform: scale(0.95);
+  transition: opacity 200ms, transform 200ms;
 }
-@keyframes tw-blink { 50% { opacity: 0; } }
+.hero-step .step-dot {
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-line);
+  color: var(--color-ink-soft);
+  transition: background-color 200ms, color 200ms, border-color 200ms, box-shadow 200ms;
+}
+.hero-step .step-title { color: var(--color-ink-soft); transition: color 200ms; }
+.hero-step:hover { opacity: 0.85; }
+.hero-step:hover .step-dot { border-color: var(--color-brand); color: var(--color-brand); }
+.hero-step.is-active {
+  opacity: 1;
+  transform: scale(1.05);
+}
+.hero-step.is-active .step-dot {
+  background-color: var(--color-brand);
+  border-color: var(--color-brand);
+  color: #ffffff;
+  box-shadow: 0 0 0 4px var(--color-brand-faint);
+}
+.hero-step.is-active .step-title { color: var(--color-ink); }
+.hero-step.is-active .step-desc { color: var(--color-ink); }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-tab .tab-progress { display: none; }
   .hero-panel, .hero-panel.is-hidden { transition: none; }
-  .tw-cursor { display: none; }
 }
 
 /* data table: the one table style used across the site — white surface
@@ -197,8 +220,8 @@ code {
   .lib-table td { padding: 0.15rem 0; }
 }
 
-/* rendered-markdown articles (language docs) — long-form reading uses
-   full-contrast ink; soft ink is for captions and summaries, not articles */
+/* rendered-markdown articles (language docs) — headings carry full ink,
+   body copy reads in soft ink */
 .prose-docs {
   color: var(--color-ink);
   line-height: 1.7;
@@ -206,8 +229,8 @@ code {
 .prose-docs h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 1rem; }
 .prose-docs h2 { font-size: 1.35rem; font-weight: 650; margin: 2.25rem 0 0.75rem; }
 .prose-docs h3 { font-size: 1.1rem; font-weight: 650; margin: 1.75rem 0 0.5rem; }
-.prose-docs p { margin: 0.75rem 0; }
-.prose-docs li { margin: 0.3rem 0; }
+.prose-docs p { margin: 0.75rem 0; color: var(--color-ink-soft); }
+.prose-docs li { margin: 0.3rem 0; color: var(--color-ink-soft); }
 .prose-docs ul { list-style: disc; padding-left: 1.5rem; margin: 0.75rem 0; }
 .prose-docs ol { list-style: decimal; padding-left: 1.5rem; margin: 0.75rem 0; }
 .prose-docs a { color: var(--color-brand); }
@@ -225,6 +248,7 @@ code {
   border-left: 3px solid var(--color-line);
   margin: 1rem 0;
   padding-left: 1rem;
+  color: var(--color-ink-soft);
 }
 .prose-docs table {
   border-collapse: collapse;

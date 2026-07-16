@@ -26,11 +26,8 @@ try {
 <BaseLayout title="xeto.dev — the registry for Xeto libraries">
   <!-- npm-style search bar: sits on the hero's lavender band so the search
        runs seamlessly into the hero; the white pill pops against it.
-       Sticks below the sticky header (top matches header height) so the
-       lavender band scrolls with the chrome — no floating-bar look. -->
-  <!-- full-bleed via negative margin (the left-1/2/translate trick fights
-       position:sticky, which needs left untouched) -->
-  <section class="sticky top-[4.25rem] z-10 -mt-10 ml-[calc(50%-50vw)] w-screen bg-page">
+       The bottom rule separates it from the identical-colored hero. -->
+  <section class="relative left-1/2 -mt-10 w-screen -translate-x-1/2 border-b border-line bg-hero">
     <div class="mx-auto max-w-6xl px-6 py-4">
       <button
         data-search-open
@@ -52,7 +49,10 @@ try {
     </div>
   </section>
 
-  <section class="grid items-center gap-10 py-12 sm:py-16 lg:grid-cols-2">
+  <!-- hero band: the lavender surface lives only on the home hero now —
+       the rest of the site sits on the neutral page background -->
+  <section class="relative left-1/2 w-screen -translate-x-1/2 bg-hero">
+    <div class="mx-auto grid max-w-6xl items-center gap-10 px-6 py-12 sm:py-16 lg:grid-cols-2">
     <div>
       <h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
         The Xeto library registry
@@ -68,6 +68,33 @@ try {
           </p>
         )
       }
+
+      <!-- stepper: model → publish → install as a numbered path, linked to
+           the code window's tabs — clicking a step selects its tab, and the
+           active tab highlights its step (see select() in the script) -->
+      <div class="relative mt-10 grid grid-cols-3 gap-3">
+        <!-- connector rule behind the circles -->
+        <div class="absolute left-[16.67%] right-[16.67%] top-3.5 h-px bg-line" aria-hidden="true"></div>
+        {
+          [
+            { panel: "panel-model", n: "1", title: "Model it", desc: "Describe your domain as typed .xeto specs." },
+            { panel: "panel-publish", n: "2", title: "Publish it", desc: "Push a versioned library under your domain." },
+            { panel: "panel-install", n: "3", title: "Install it anywhere", desc: "Every tool resolves the same checked specs." },
+          ].map((step, i) => (
+            <button
+              type="button"
+              data-step-panel={step.panel}
+              class:list={["hero-step flex flex-col items-center text-center", i === 0 && "is-active"]}
+            >
+              <span class="step-dot relative z-10 flex size-7 items-center justify-center rounded-full text-sm font-semibold">
+                {step.n}
+              </span>
+              <span class="step-title mt-2.5 text-sm font-bold">{step.title}</span>
+              <span class="step-desc mt-1 text-xs text-ink-soft">{step.desc}</span>
+            </button>
+          ))
+        }
+      </div>
     </div>
 
     <!-- hero window: real xeto source plus the publish/install story as
@@ -108,136 +135,61 @@ fetching acme.orders, sys ... ok</span>
 <span class="text-brand">installed 2 libs — same types in every tool</span></code></pre>
       </div>
     </div>
-    <p class="mt-3 text-center text-sm font-semibold text-ink-soft">
-      model &rarr; publish &rarr; install
-    </p>
+    </div>
     </div>
   </section>
 
   <script>
-    // hero window: each tab types its content live (spec file and terminal
-    // transcripts), then auto-advances. Click stops the auto-cycle for good;
-    // hover pauses advancing; offscreen pauses; reduced-motion users get
-    // instant full content and no cycling. Full content stays in the DOM
-    // for no-JS/SEO — typing works by revealing existing text nodes.
+    // hero: the code window's tabs and the stepper's steps are two views of
+    // the same model → publish → install sequence. On load it cycles through
+    // the three panels on an interval (progress underline telegraphs each
+    // switch); any click on a tab or step stops the auto-cycle for good.
+    // Offscreen pauses; reduced-motion users get no cycling.
+    const STEP_MS = 4000;    // dwell per panel while auto-cycling
     const win = document.getElementById("hero-window")!;
     const tabs = Array.from(win.querySelectorAll<HTMLButtonElement>(".hero-tab"));
-    const CHAR_MS = 18;      // per-character typing speed
-    const LINE_MS = 700;     // stagger between terminal output lines
-    const CMD_MS = 600;      // beat after the command, like the CLI working
-    const READ_MS = 2800;    // dwell after typing completes
+    const panels = tabs.map((t) => document.getElementById(t.dataset.panel!)!);
+    const steps = Array.from(document.querySelectorAll<HTMLButtonElement>(".hero-step"));
     let current = 0;
     let timer: number | undefined;
-    let run = 0;             // generation counter cancels stale animations
     let stopped = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let done = stopped;      // after one full cycle, typing never replays
-    let visible = false;
-
-    // snapshot each panel's text nodes with their full content
-    type Node = { node: Text; full: string };
-    const panels = tabs.map((t) => {
-      const el = document.getElementById(t.dataset.panel!)!;
-      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
-      const nodes: Node[] = [];
-      let n: globalThis.Node | null;
-      while ((n = walker.nextNode())) nodes.push({ node: n as Text, full: n.textContent ?? "" });
-      return { el, nodes };
-    });
-
-    // lock the window height to the tallest panel before typing ever empties
-    // one — typing then plays inside a fixed frame with room to breathe
-    const panelsBox = document.getElementById("hero-panels")!;
-    panelsBox.style.minHeight = `${Math.max(...panels.map((p) => p.el.scrollHeight))}px`;
-
-    const sleep = (ms: number, gen: number) =>
-      new Promise<boolean>((res) => setTimeout(() => res(gen === run), ms));
-
-    async function typePanel(i: number, gen: number) {
-      const { nodes } = panels[i]!;
-      const cursor = document.createElement("span");
-      cursor.className = "tw-cursor";
-      nodes.forEach((x) => (x.node.textContent = ""));
-      for (const [k, x] of nodes.entries()) {
-        // whitespace-only nodes (the newlines between spans) restore
-        // instantly — otherwise the next colored line glues onto the
-        // previous one until restore() runs
-        if (!x.full.trim()) { x.node.textContent = x.full; continue; }
-        // terminal panels: nodes 0-1 are the "$ command" (typed per-char);
-        // the rest is output, which streams line-by-line like a real CLI
-        const byLine = i > 0 && k > 1;
-        x.node.parentElement?.insertBefore(cursor, x.node.nextSibling);
-        // pause after the command is typed, before output starts streaming
-        if (i > 0 && k === 2 && !(await sleep(CMD_MS, gen))) return;
-        if (byLine) {
-          // slice-join keeps leading/blank lines intact while streaming,
-          // so the gap after the command is there from the first line
-          const lines = x.full.split("\n");
-          for (let l = 1; l <= lines.length; l++) {
-            x.node.textContent = lines.slice(0, l).join("\n");
-            if (lines[l - 1]!.trim() && !(await sleep(LINE_MS, gen))) return;
-          }
-        } else {
-          for (const ch of x.full) {
-            x.node.textContent += ch;
-            if (!(await sleep(CHAR_MS, gen))) return;
-          }
-        }
-      }
-      cursor.remove();
-    }
-
-    function restore(i: number) {
-      panels[i]!.nodes.forEach((x) => (x.node.textContent = x.full));
-      panels[i]!.el.querySelector(".tw-cursor")?.remove();
-    }
 
     function select(i: number) {
       current = i;
       tabs.forEach((t, j) => {
         t.setAttribute("aria-selected", String(j === i));
-        panels[j]!.el.classList.toggle("is-hidden", j !== i);
+        panels[j]!.classList.toggle("is-hidden", j !== i);
         t.querySelector(".tab-progress")!.classList.remove("run");
       });
+      steps.forEach((s, j) => s.classList.toggle("is-active", j === i));
     }
 
-    async function play(i: number, andAdvance: boolean) {
-      const gen = ++run;
+    function scheduleNext() {
+      clearTimeout(timer);
+      if (stopped) return;
+      // progress underline fills over the dwell so the switch is telegraphed
+      const p = tabs[current]!.querySelector<HTMLElement>(".tab-progress")!;
+      p.style.setProperty("--tab-interval", `${STEP_MS}ms`);
+      p.classList.add("run");
+      timer = window.setTimeout(() => {
+        select((current + 1) % tabs.length);
+        scheduleNext();
+      }, STEP_MS);
+    }
+
+    const pick = (i: number) => {
+      stopped = true;
       clearTimeout(timer);
       select(i);
-      const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduced) { restore(i); return; }
-      await typePanel(i, gen);
-      if (gen !== run) return;
-      restore(i);
-      if (andAdvance && !stopped && visible) {
-        // progress underline fills over the dwell so the switch is telegraphed
-        const p = tabs[i]!.querySelector<HTMLElement>(".tab-progress")!;
-        p.style.setProperty("--tab-interval", `${READ_MS}ms`);
-        p.classList.add("run");
-        // one cycle only: after install, settle permanently on the
-        // completed order.xeto — no re-typing, no more advancing
-        timer = window.setTimeout(() => {
-          if (i === tabs.length - 1) { stopped = true; done = true; select(0); restore(0); }
-          else play(i + 1, true);
-        }, READ_MS);
-      }
-    }
+    };
+    tabs.forEach((t, i) => t.addEventListener("click", () => pick(i)));
+    steps.forEach((s, i) => s.addEventListener("click", () => pick(i)));
 
-    tabs.forEach((t, i) =>
-      t.addEventListener("click", () => {
-        stopped = true;
-        // once the cycle has played, clicks just switch to populated text
-        if (done) { run++; clearTimeout(timer); select(i); restore(i); }
-        else play(i, false);
-      }),
-    );
-    win.addEventListener("pointerenter", () => clearTimeout(timer));
-    win.addEventListener("pointerleave", () => { if (!stopped && visible) play(current, true); });
+    // cycle only while the window is on screen
     new IntersectionObserver((entries) => {
-      const was = visible;
-      visible = entries.some((e) => e.isIntersecting);
-      if (visible && !was && !stopped) play(current, true);
-      if (!visible) { run++; clearTimeout(timer); restore(current); if (stopped) done = true; }
+      const visible = entries.some((e) => e.isIntersecting);
+      if (visible && !stopped) scheduleNext();
+      else { clearTimeout(timer); tabs[current]!.querySelector(".tab-progress")!.classList.remove("run"); }
     }).observe(win);
   </script>
 
