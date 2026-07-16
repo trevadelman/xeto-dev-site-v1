@@ -147,7 +147,7 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
           <a
             id="session-indicator"
             href="/account"
-            class="invisible hidden items-center gap-1.5 whitespace-nowrap rounded border border-line px-2.5 py-1 text-sm text-ink-soft transition hover:border-brand hover:text-brand sm:flex"
+            class="invisible hidden h-8 items-center gap-1.5 whitespace-nowrap rounded border border-line px-2.5 text-sm text-ink-soft transition hover:border-brand hover:text-brand sm:flex"
           ></a>
 
 
@@ -201,6 +201,16 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
             </a>
           ),
         )}
+        <a
+          id="mobile-account-link"
+          href="/account"
+          class:list={[
+            "block border-t border-line px-6 py-3 text-sm",
+            isActive("/account") ? "font-medium text-brand" : "text-ink-soft",
+          ]}
+        >
+          Account
+        </a>
       </nav>
 
     </header>
@@ -344,15 +354,37 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
       });
       window.addEventListener("keydown", (e) => {
         const tag = (document.activeElement as HTMLElement)?.tagName;
-        if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); openSearch(); }
-        else if (e.key === "/" && tag !== "INPUT" && tag !== "TEXTAREA") { e.preventDefault(); openSearch(); }
+        if (e.key === "/" && tag !== "INPUT" && tag !== "TEXTAREA") { e.preventDefault(); openSearch(); }
         else if (e.key === "Escape") closeSearch();
+      });
+
+      // keyboard nav through results: down/up move the highlight,
+      // enter follows the highlighted result (or the first one)
+      let active = -1;
+      function items(): HTMLAnchorElement[] {
+        return Array.from(results.querySelectorAll("a"));
+      }
+      function highlight(i: number) {
+        const list = items();
+        if (list.length === 0) return;
+        active = (i + list.length) % list.length;
+        list.forEach((a, j) => a.classList.toggle("bg-paper-soft", j === active));
+        list[active]?.scrollIntoView({ block: "nearest" });
+      }
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowDown") { e.preventDefault(); highlight(active + 1); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); highlight(active - 1); }
+        else if (e.key === "Enter") {
+          const target = items()[active] ?? items()[0];
+          if (target) target.click();
+        }
       });
 
       input.addEventListener("input", () => {
         clearTimeout(debounce);
         const q = input.value.trim();
         if (!q) { results.innerHTML = ""; return; }
+        active = -1;
         debounce = window.setTimeout(async () => {
           const { libs } = await searchLibs(q, 8);
           results.innerHTML =
