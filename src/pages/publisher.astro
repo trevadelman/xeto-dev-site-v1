@@ -50,7 +50,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </div>
 
   <script>
-    import { publisherDetail } from "../lib/registry";
+    import { publisherDetail, esc } from "../lib/registry";
     import { session, me } from "../lib/session";
 
     const handle =
@@ -73,7 +73,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
       if (pub.orgs.length > 0) {
         el("pub-orgs").innerHTML = pub.orgs
-          .map((o) => `<a href="/orgs/${encodeURIComponent(o)}" class="text-brand hover:underline">${o}</a>`)
+          .map((o) => `<a href="/orgs/${encodeURIComponent(o)}" class="text-brand hover:underline">${esc(o)}</a>`)
           .join(", ");
         el("pub-orgs-wrap").classList.remove("hidden");
       }
@@ -89,9 +89,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           .map(
             (l) => `
         <tr class="border-b border-line last:border-b-0 hover:bg-paper-soft">
-          <td class="px-4 py-3"><a href="/lib/${encodeURIComponent(l.name)}" class="font-mono font-medium text-brand hover:underline">${l.name}</a></td>
-          <td class="px-4 py-3 font-mono text-ink-soft">${l.version}</td>
-          <td class="px-4 py-3 text-ink-soft">${l.doc}</td>
+          <td class="px-4 py-3"><a href="/lib/${encodeURIComponent(l.name)}" class="font-mono font-medium text-brand hover:underline">${esc(l.name)}</a></td>
+          <td class="px-4 py-3 font-mono text-ink-soft">${esc(l.version)}</td>
+          <td class="px-4 py-3 text-ink-soft">${esc(l.doc)}</td>
           <td class="px-4 py-3 text-ink-soft">${l.downloads}</td>
         </tr>`,
           )

@@ -1,0 +1,25 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+// Netlify serves dist/404.html automatically for unmatched routes
+---
+
+<BaseLayout title="Page not found — xeto.dev">
+  <div class="mx-auto max-w-md py-16 text-center">
+    <p class="font-mono text-6xl font-bold text-brand">404</p>
+    <h1 class="mt-4 text-2xl font-semibold tracking-tight">Page not found</h1>
+    <p class="mt-3 text-ink-soft">
+      That page doesn't exist — or hasn't been published yet.
+    </p>
+    <div class="mt-8 flex justify-center gap-3 text-sm">
+      <a href="/libs" class="rounded bg-brand px-4 py-2 font-medium text-white hover:opacity-90">
+        Browse libraries
+      </a>
+      <a href="/explorer/" class="rounded border border-line px-4 py-2 text-ink-soft hover:border-brand hover:text-brand">
+        Open the explorer
+      </a>
+    </div>
+    <p class="mt-6 text-xs text-ink-soft">
+      Tip: press <kbd class="rounded border border-line px-1.5 py-0.5">/</kbd> to search
+    </p>
+  </div>
+</BaseLayout>

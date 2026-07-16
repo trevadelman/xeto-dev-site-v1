@@ -1,0 +1,46 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+// Combined terms + privacy placeholder for the early-access launch.
+// Split into /terms and /privacy with reviewed copy before publishing
+// opens to the community.
+---
+
+<BaseLayout title="Terms & Privacy — xeto.dev">
+  <div class="mx-auto max-w-2xl">
+    <h1 class="text-3xl font-bold tracking-tight">Terms &amp; Privacy</h1>
+    <p class="mt-2 text-sm text-ink-soft">
+      Early-access draft — this page will be expanded before community
+      publishing opens.
+    </p>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="text-xl font-semibold">Terms of use</h2>
+      <p class="text-ink-soft">
+        xeto.dev is a registry for Xeto typed-data libraries, operated by
+        XetoBase. Browsing, searching, and installing libraries is free and
+        requires no account. Publishing is currently invite-only.
+      </p>
+      <p class="text-ink-soft">
+        Libraries are published by their respective authors under their own
+        licenses — check each library's documentation. The registry is
+        provided as-is, without warranty, during early access.
+      </p>
+    </section>
+
+    <section class="mt-8 space-y-3">
+      <h2 class="text-xl font-semibold">Privacy</h2>
+      <p class="text-ink-soft">
+        We collect the minimum needed to run the registry:
+      </p>
+      <ul class="list-disc space-y-1 pl-5 text-ink-soft">
+        <li>Your email address, if you have a publisher account (used for sign-in only).</li>
+        <li>Contact form submissions (name, email, message) so we can reply.</li>
+        <li>Anonymous, aggregate download counts per library version.</li>
+      </ul>
+      <p class="text-ink-soft">
+        No advertising, no tracking cookies, no selling data. Questions?
+        <a href="/contact" class="text-brand hover:underline">Get in touch</a>.
+      </p>
+    </section>
+  </div>
+</BaseLayout>

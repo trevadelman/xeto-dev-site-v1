@@ -78,6 +78,12 @@ export function publisherDetail(handle: string): Promise<RegistryPublisher> {
 }
 
 
+// escape API-sourced strings before innerHTML interpolation — lib docs and
+// org descriptions become community-authored once publishing opens
+export function esc(s: string): string {
+  return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
+}
+
 export function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, {
     year: "numeric", month: "short", day: "numeric",

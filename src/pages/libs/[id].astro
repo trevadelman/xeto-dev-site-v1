@@ -146,7 +146,7 @@ const allIds = new Set((await getCollection("libs")).map((l) => l.id));
   </section>
 
   <script>
-    import { libVersions, fmtDate } from "../../lib/registry";
+    import { libVersions, fmtDate, esc } from "../../lib/registry";
 
     const section = document.getElementById("versions-section")!;
     libVersions(section.dataset.lib!)
@@ -155,7 +155,7 @@ const allIds = new Set((await getCollection("libs")).map((l) => l.id));
           .map(
             (v) => `
           <tr class="border-b border-line last:border-b-0">
-            <td class="px-4 py-3 font-mono">${v.version}</td>
+            <td class="px-4 py-3 font-mono">${esc(v.version)}</td>
             <td class="px-4 py-3 text-ink-soft">${fmtDate(v.published_at)}</td>
             <td class="px-4 py-3 text-ink-soft">${v.downloads}</td>
           </tr>`,

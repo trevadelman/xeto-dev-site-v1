@@ -71,7 +71,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </div>
 
   <script>
-    import { libSummary, libVersions, fmtDate } from "../lib/registry";
+    import { libSummary, libVersions, fmtDate, esc } from "../lib/registry";
     import { session, me } from "../lib/session";
 
     // path via _redirects rewrite in prod; ?name= fallback for local dev
@@ -104,7 +104,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       const depends = summary.depends ?? [];
       if (depends.length > 0) {
         el("lib-depends").innerHTML = depends
-          .map((d) => `<li class="text-ink-soft">${d.name} <span class="text-xs">${d.versions}</span></li>`)
+          .map((d) => `<li class="text-ink-soft">${esc(d.name)} <span class="text-xs">${esc(d.versions)}</span></li>`)
           .join("");
         el("lib-depends-wrap").classList.remove("hidden");
       }
@@ -113,7 +113,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         .map(
           (v) => `
         <tr class="border-b border-line last:border-b-0">
-          <td class="px-4 py-3 font-mono">${v.version}</td>
+          <td class="px-4 py-3 font-mono">${esc(v.version)}</td>
           <td class="px-4 py-3 text-ink-soft">${fmtDate(v.published_at)}</td>
           <td class="px-4 py-3 text-ink-soft">${v.downloads}</td>
         </tr>`,

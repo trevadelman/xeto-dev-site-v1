@@ -1,0 +1,102 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+// Contact form handled by Netlify Forms — detected at deploy time via
+// data-netlify, submissions forwarded by a dashboard email notification.
+// ?about=account pre-selects the topic (linked from the sign-in page);
+// ?success shows the thank-you state (Netlify redirects back here).
+---
+
+<BaseLayout title="Contact — xeto.dev" description="Get in touch with the xeto.dev team">
+  <div class="mx-auto max-w-md">
+    <h1 class="text-2xl font-semibold tracking-tight">Contact</h1>
+    <p class="mt-3 text-ink-soft">
+      Questions, account requests, or feedback — we read everything.
+    </p>
+
+    <p
+      id="sent"
+      class="mt-6 hidden rounded-lg border border-brand/40 bg-brand/5 p-4 text-sm"
+    >
+      Thanks — your message is on its way. We'll get back to you soon.
+    </p>
+
+    <form
+      id="contact-form"
+      name="contact"
+      method="POST"
+      action="/contact?success"
+      data-netlify="true"
+      netlify-honeypot="website"
+      class="mt-6 space-y-4"
+    >
+      <input type="hidden" name="form-name" value="contact" />
+      <!-- honeypot: hidden from humans, bots fill it and get dropped -->
+      <p class="hidden">
+        <label>Website <input name="website" /></label>
+      </p>
+
+      <div>
+        <label for="name" class="block text-sm font-medium">Name</label>
+        <input
+          id="name"
+          name="name"
+          type="text"
+          required
+          class="mt-1 w-full rounded border border-line bg-paper px-3 py-2 text-sm"
+        />
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm font-medium">Email</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          required
+          class="mt-1 w-full rounded border border-line bg-paper px-3 py-2 text-sm"
+        />
+      </div>
+
+      <div>
+        <label for="topic" class="block text-sm font-medium">Topic</label>
+        <select
+          id="topic"
+          name="topic"
+          class="mt-1 w-full rounded border border-line bg-paper px-3 py-2 text-sm"
+        >
+          <option value="general">General</option>
+          <option value="account">Request an account</option>
+          <option value="issue">Report an issue</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="message" class="block text-sm font-medium">Message</label>
+        <textarea
+          id="message"
+          name="message"
+          rows="5"
+          required
+          class="mt-1 w-full rounded border border-line bg-paper px-3 py-2 text-sm"
+        ></textarea>
+      </div>
+
+      <button
+        type="submit"
+        class="rounded bg-brand px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+      >
+        Send message
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    if (params.has("success")) {
+      document.getElementById("sent")!.classList.remove("hidden");
+      document.getElementById("contact-form")!.classList.add("hidden");
+    }
+    const about = params.get("about");
+    if (about) (document.getElementById("topic") as HTMLSelectElement).value = about;
+  </script>
+</BaseLayout>

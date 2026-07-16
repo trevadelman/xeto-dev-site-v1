@@ -78,7 +78,18 @@ export async function sendMagicLink(email: string): Promise<void> {
     // existing accounts can still sign in; strangers get an error
     body: JSON.stringify({ email, create_user: false }),
   });
-  if (!res.ok) throw new Error("Could not send link: " + (await res.json()).msg);
+  if (!res.ok) throw new Error(friendlyAuthError((await res.json()).msg));
+}
+
+// translate raw Supabase auth messages into copy that matches the
+// V1 invite-only story (docs/v1-scope.md)
+function friendlyAuthError(msg: string | undefined): string {
+  const m = (msg ?? "").toLowerCase();
+  if (m.includes("signups not allowed"))
+    return "No account found for that email. Accounts are invite-only while publishing is in early access.";
+  if (m.includes("rate limit"))
+    return "Too many sign-in emails requested. Wait a few minutes and try again.";
+  return "Could not send link: " + (msg ?? "unknown error");
 }
 
 // authed fetch against the account API; signs out and throws on 401

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://xetodev-trev-site-v1.netlify.app/sitemap-index.xml

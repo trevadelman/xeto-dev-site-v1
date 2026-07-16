@@ -82,7 +82,7 @@ const libs = (await getCollection("libs")).sort((a, b) =>
   </section>
 
   <script>
-    import { searchLibs } from "../../lib/registry";
+    import { searchLibs, esc } from "../../lib/registry";
 
     // registry libs not already covered by a static curated page
     const staticNames = new Set(
@@ -99,9 +99,9 @@ const libs = (await getCollection("libs")).sort((a, b) =>
         .map(
           (l) => `
         <tr class="border-b border-line last:border-b-0 hover:bg-paper-soft">
-          <td class="px-4 py-3"><a href="/lib/${l.name}" class="font-mono font-medium text-brand hover:underline">${l.name}</a></td>
-          <td class="px-4 py-3 font-mono text-ink-soft">${l.version}</td>
-          <td class="px-4 py-3 text-ink-soft">${l.doc}</td>
+          <td class="px-4 py-3"><a href="/lib/${encodeURIComponent(l.name)}" class="font-mono font-medium text-brand hover:underline">${esc(l.name)}</a></td>
+          <td class="px-4 py-3 font-mono text-ink-soft">${esc(l.version)}</td>
+          <td class="px-4 py-3 text-ink-soft">${esc(l.doc)}</td>
           <td class="px-4 py-3 text-ink-soft">${l.downloads}</td>
         </tr>`,
         )

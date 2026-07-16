@@ -1,5 +1,10 @@
 ---
 import "../styles/global.css";
+import { getCollection } from "astro:content";
+
+// lib names with curated static pages — search results link there first,
+// falling back to the live-registry /lib/{name} page for anything newer
+const staticLibNames = (await getCollection("libs")).map((l) => l.data.name);
 
 interface Props {
   title: string;
@@ -47,6 +52,14 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
     <link rel="canonical" href={canonicalURL.href} />
     <title>{title}</title>
     <link rel="icon" type="image/png" href="/xeto-logo.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <!-- social link previews (Slack, Twitter, LinkedIn, ...) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:image" content={new URL("/xeto-logo.png", Astro.site).href} />
+    <meta name="twitter:card" content="summary" />
     <script is:inline>
       // set theme before paint to avoid flash; persisted in localStorage
       // light by default; user's explicit choice persists in localStorage
@@ -145,7 +158,9 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
             aria-expanded="false"
             class="flex h-8 w-8 items-center justify-center rounded border border-line text-ink-soft transition hover:border-brand hover:text-brand sm:hidden"
           >
-            ☰
+            <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" />
+            </svg>
           </button>
         </div>
       </div>
@@ -200,14 +215,20 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
       >
         <p>&copy; {new Date().getFullYear()} XetoBase™. All rights reserved.</p>
         <div class="flex items-center gap-4">
-          <p class="hidden sm:block">xeto.dev — the registry for Xeto typed-data libraries</p>
+          <a href="/about" class="hover:text-brand">About</a>
+          <a href="/contact" class="hover:text-brand">Contact</a>
+          <a href="/legal" class="hover:text-brand">Terms</a>
           <button
             id="theme-toggle"
             type="button"
             aria-label="Toggle theme"
-            class="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded border border-line px-2.5 text-ink-soft transition hover:border-brand hover:text-brand"
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-line text-ink-soft transition hover:border-brand hover:text-brand"
           >
-            ◐ <span data-theme-label class="hidden sm:inline"></span>
+            <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <circle cx="8" cy="8" r="5.5" />
+              <path d="M8 2.5v11" />
+              <path d="M8 2.5a5.5 5.5 0 0 1 0 11" fill="currentColor" stroke="none" />
+            </svg>
           </button>
 
 
@@ -257,30 +278,31 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
         const open = panel.classList.toggle("hidden");
         menuBtn.setAttribute("aria-expanded", String(!open));
       });
-      // theme toggle labels name the mode a click switches to
-      const themeLabels = () => {
-        const dark = document.documentElement.dataset.theme === "dark";
-        document.querySelectorAll("[data-theme-label]").forEach((el) => {
-          el.textContent = dark ? "Light mode" : "Dark mode";
-        });
-      };
       const flipTheme = () => {
         const el = document.documentElement;
         const next = el.dataset.theme === "dark" ? "light" : "dark";
         el.dataset.theme = next;
         localStorage.setItem("theme", next);
-        themeLabels();
       };
-      themeLabels();
       document.getElementById("theme-toggle")?.addEventListener("click", flipTheme);
 
 
     </script>
 
 
+    <script define:vars={{ staticLibNames }} is:inline>
+      // exposed for the module script below (Astro define:vars only works
+      // on inline scripts)
+      window.__staticLibs = new Set(staticLibNames);
+    </script>
+
     <script>
-      import { searchLibs } from "../lib/registry";
+      import { searchLibs, esc } from "../lib/registry";
       import { session, me, cachedWho } from "../lib/session";
+
+      const staticLibs: Set<string> = (window as any).__staticLibs ?? new Set();
+      const libHref = (name: string) =>
+        staticLibs.has(name) ? `/libs/${encodeURIComponent(name)}` : `/lib/${encodeURIComponent(name)}`;
 
       // header session indicator: signed out -> "Sign in", signed in ->
       // "@handle" (or display name if no handle claimed yet). Renders
@@ -339,10 +361,10 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
               : libs
                   .map(
                     (l) => `
-            <a href="/lib/${encodeURIComponent(l.name)}" class="mx-1.5 block rounded px-3 py-2 hover:bg-paper-soft">
-              <span class="font-mono text-sm font-medium text-brand">${l.name}</span>
-              <span class="ml-2 font-mono text-xs text-ink-soft">${l.version}</span>
-              <p class="mt-0.5 truncate text-xs text-ink-soft">${l.doc}</p>
+            <a href="${libHref(l.name)}" class="mx-1.5 block rounded px-3 py-2 hover:bg-paper-soft">
+              <span class="font-mono text-sm font-medium text-brand">${esc(l.name)}</span>
+              <span class="ml-2 font-mono text-xs text-ink-soft">${esc(l.version)}</span>
+              <p class="mt-0.5 truncate text-xs text-ink-soft">${esc(l.doc)}</p>
             </a>`,
                   )
                   .join("");

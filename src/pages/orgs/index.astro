@@ -12,9 +12,16 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
   <div id="orgs" class="mt-8 hidden grid gap-4 sm:grid-cols-2"></div>
 
   <script>
-    import { orgList } from "../../lib/registry";
+    import { orgList, esc } from "../../lib/registry";
 
     const el = (id: string) => document.getElementById(id)!;
+
+    // orgs with no published libs yet get honest "publishing opens soon"
+    // framing instead of an abandoned-looking zero count
+    const libCountLabel = (n: number) =>
+      n === 0
+        ? `<span class="rounded-full bg-paper-soft px-2 py-0.5">publishing opens soon</span>`
+        : `${n} ${n === 1 ? "library" : "libraries"}`;
 
     orgList()
       .then(({ orgs }) => {
@@ -23,12 +30,12 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
             (o) => `
           <a href="/orgs/${encodeURIComponent(o.name)}" class="block rounded-lg border border-line p-5 hover:border-brand">
             <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <h2 class="break-words font-semibold text-ink">${o.name}</h2>
-              <span class="break-all font-mono text-xs text-ink-soft">${o.prefixes.map((p) => p + ".*").join(", ")}</span>
+              <h2 class="break-words font-semibold text-ink">${esc(o.name)}</h2>
+              <span class="break-all font-mono text-xs text-ink-soft">${o.prefixes.map((p) => esc(p) + ".*").join(", ")}</span>
             </div>
 
-            <p class="mt-2 text-sm text-ink-soft">${o.description}</p>
-            <p class="mt-3 text-xs text-ink-soft">${o.lib_count} ${o.lib_count === 1 ? "library" : "libraries"}</p>
+            <p class="mt-2 text-sm text-ink-soft">${esc(o.description)}</p>
+            <p class="mt-3 text-xs text-ink-soft">${libCountLabel(o.lib_count)}</p>
           </a>`,
           )
           .join("");

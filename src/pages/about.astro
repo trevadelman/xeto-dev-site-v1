@@ -1,0 +1,40 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+---
+
+<BaseLayout title="About — xeto.dev" description="What xeto.dev is and who runs it">
+  <div class="mx-auto max-w-2xl">
+    <h1 class="text-3xl font-bold tracking-tight">About xeto.dev</h1>
+
+    <div class="mt-6 space-y-4 text-ink-soft">
+      <p>
+        xeto.dev is the package registry for
+        <span class="font-medium text-ink">Xeto</span> — a language for
+        defining typed data. Every library here is a versioned collection of
+        specs: types, slots, and instances that describe real-world data
+        models, from Project Haystack's building ontology to your own
+        domain's schemas.
+      </p>
+      <p>
+        Xeto grew out of the
+        <a href="https://project-haystack.org" class="text-brand hover:underline">Project Haystack</a>
+        community's work on semantic data modeling and is developed in the
+        open alongside
+        <a href="https://haxall.io" class="text-brand hover:underline">Haxall</a>.
+        The registry gives that ecosystem what package managers gave code:
+        versioned publishing, dependency resolution, and one place to
+        discover what already exists.
+      </p>
+      <p>
+        The site and registry are maintained by
+        <a href="https://xetobase.com" class="text-brand hover:underline">XetoBase</a>.
+        We're in early access — browsing and installing is open to everyone;
+        publishing is invite-only while the tooling settles.
+      </p>
+      <p>
+        Questions, ideas, or want to publish?
+        <a href="/contact" class="text-brand hover:underline">Get in touch</a>.
+      </p>
+    </div>
+  </div>
+</BaseLayout>
