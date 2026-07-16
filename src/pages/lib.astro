@@ -38,13 +38,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
         <section class="mt-10">
           <h2 class="text-xl font-semibold">Versions</h2>
-          <div class="mt-4 overflow-hidden rounded-lg border border-line">
-            <table class="w-full text-sm">
+          <div class="table-wrap mt-4">
+            <table class="data-table">
               <thead>
-                <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
-                  <th class="px-4 py-2.5 font-semibold">Version</th>
-                  <th class="px-4 py-2.5 font-semibold">Published</th>
-                  <th class="px-4 py-2.5 font-semibold">Downloads</th>
+                <tr>
+                  <th>Version</th>
+                  <th>Published</th>
+                  <th>Downloads</th>
                 </tr>
               </thead>
               <tbody id="lib-versions"></tbody>
@@ -112,10 +112,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       el("lib-versions").innerHTML = vers.versions
         .map(
           (v) => `
-        <tr class="border-b border-line last:border-b-0">
-          <td class="px-4 py-3 font-mono">${esc(v.version)}</td>
-          <td class="px-4 py-3 text-ink-soft">${fmtDate(v.published_at)}</td>
-          <td class="px-4 py-3 text-ink-soft">${v.downloads}</td>
+        <tr>
+          <td class="font-mono">${esc(v.version)}</td>
+          <td class="text-ink-soft">${fmtDate(v.published_at)}</td>
+          <td class="text-ink-soft">${v.downloads}</td>
         </tr>`,
         )
         .join("");

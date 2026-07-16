@@ -36,6 +36,11 @@ Need-to-know:
 - Explorer bundle regen is manual and whitelist-only — follow
   `../docs/explorer-integration.md` exactly (output to
   `public/explorer-app/`, run the pre-publish check)
+- The `/contact` form is **Netlify Forms** — it only works on the
+  deployed site (local POSTs 501/404). Form detection must be enabled
+  in the Netlify dashboard *before* the deploy that registers the
+  form; email notifications are configured there too (Forms →
+  Notifications)
 
 ## Pages
 
@@ -51,6 +56,10 @@ Need-to-know:
 | `/publishers/{handle}` | `src/pages/publisher.astro` |
 | `/account` | `src/pages/account.astro` — magic-link sign-in, tokens, claims |
 | `/explorer` | `src/pages/explorer.astro` — embeds `public/explorer-app/` |
+| `/about` | `src/pages/about.astro` |
+| `/contact` | `src/pages/contact.astro` — Netlify Forms (deploy-only) |
+| `/legal` | `src/pages/legal.astro` — Terms & Privacy placeholder |
+| 404 | `src/pages/404.astro` — served by Netlify for unknown routes |
 
 
 ## Registry CLI: publish and install

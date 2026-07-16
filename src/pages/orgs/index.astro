@@ -20,7 +20,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
     // framing instead of an abandoned-looking zero count
     const libCountLabel = (n: number) =>
       n === 0
-        ? `<span class="rounded-full bg-paper-soft px-2 py-0.5">publishing opens soon</span>`
+        ? `<span class="rounded-full bg-white/10 px-2 py-0.5">publishing opens soon</span>`
         : `${n} ${n === 1 ? "library" : "libraries"}`;
 
     orgList()
@@ -28,14 +28,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
         el("orgs").innerHTML = orgs
           .map(
             (o) => `
-          <a href="/orgs/${encodeURIComponent(o.name)}" class="block rounded-lg border border-line p-5 hover:border-brand">
+          <a href="/orgs/${encodeURIComponent(o.name)}" class="card-brand block">
             <div class="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-              <h2 class="break-words font-semibold text-ink">${esc(o.name)}</h2>
-              <span class="break-all font-mono text-xs text-ink-soft">${o.prefixes.map((p) => esc(p) + ".*").join(", ")}</span>
+              <h2 class="break-words font-semibold">${esc(o.name)}</h2>
+              <span class="card-soft break-all font-mono text-xs">${o.prefixes.map((p) => esc(p) + ".*").join(", ")}</span>
             </div>
 
-            <p class="mt-2 text-sm text-ink-soft">${esc(o.description)}</p>
-            <p class="mt-3 text-xs text-ink-soft">${libCountLabel(o.lib_count)}</p>
+            <p class="card-soft mt-2 text-sm">${esc(o.description)}</p>
+            <p class="card-soft mt-3 text-xs">${libCountLabel(o.lib_count)}</p>
           </a>`,
           )
           .join("");

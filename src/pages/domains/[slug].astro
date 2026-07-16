@@ -31,13 +31,13 @@ const libs = (await getCollection("libs")).filter((l) =>
       libs.map((lib) => (
         <a
           href={`/libs/${lib.id}`}
-          class="group rounded-lg border border-line p-5 transition hover:border-brand"
+          class="card-brand block"
         >
           <div class="flex items-baseline justify-between gap-2">
-            <h3 class="font-mono font-semibold group-hover:text-brand">{lib.data.name}</h3>
-            <span class="font-mono text-xs text-ink-soft">v{lib.data.version}</span>
+            <h3 class="font-mono font-semibold">{lib.data.name}</h3>
+            <span class="card-soft font-mono text-xs">v{lib.data.version}</span>
           </div>
-          <p class="mt-2 text-sm text-ink-soft">{lib.data.summary}</p>
+          <p class="card-soft mt-2 text-sm">{lib.data.summary}</p>
         </a>
       ))
     }

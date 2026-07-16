@@ -29,15 +29,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 
     <section class="mt-10">
       <h2 class="text-xl font-semibold">Published libraries</h2>
-      <div class="mt-4 overflow-x-auto rounded-lg border border-line">
-        <table class="w-full min-w-[36rem] text-sm">
-
+      <div class="table-wrap mt-4">
+        <table class="data-table min-w-[36rem]">
           <thead>
-            <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
-              <th class="px-4 py-2.5 font-semibold">Library</th>
-              <th class="px-4 py-2.5 font-semibold">Version</th>
-              <th class="px-4 py-2.5 font-semibold">Summary</th>
-              <th class="px-4 py-2.5 font-semibold">Downloads</th>
+            <tr>
+              <th>Library</th>
+              <th>Version</th>
+              <th>Summary</th>
+              <th>Downloads</th>
             </tr>
           </thead>
           <tbody id="pub-libs"></tbody>
@@ -88,11 +87,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         el("pub-libs").innerHTML = pub.libs
           .map(
             (l) => `
-        <tr class="border-b border-line last:border-b-0 hover:bg-paper-soft">
-          <td class="px-4 py-3"><a href="/lib/${encodeURIComponent(l.name)}" class="font-mono font-medium text-brand hover:underline">${esc(l.name)}</a></td>
-          <td class="px-4 py-3 font-mono text-ink-soft">${esc(l.version)}</td>
-          <td class="px-4 py-3 text-ink-soft">${esc(l.doc)}</td>
-          <td class="px-4 py-3 text-ink-soft">${l.downloads}</td>
+        <tr>
+          <td><a href="/lib/${encodeURIComponent(l.name)}" class="font-mono font-medium text-brand hover:underline">${esc(l.name)}</a></td>
+          <td class="font-mono text-ink-soft">${esc(l.version)}</td>
+          <td class="text-ink-soft">${esc(l.doc)}</td>
+          <td class="text-ink-soft">${l.downloads}</td>
         </tr>`,
           )
           .join("");

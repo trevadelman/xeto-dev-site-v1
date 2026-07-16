@@ -19,17 +19,17 @@ const countFor = (slug: string) =>
       domains.map((domain) => (
         <a
           href={`/domains/${domain.data.slug}`}
-          class="group rounded-lg border border-line p-6 transition hover:border-brand"
+          class="card-brand block"
         >
           <div class="flex items-baseline justify-between">
-            <h2 class="text-lg font-semibold group-hover:text-brand">
+            <h2 class="text-lg font-semibold">
               {domain.data.name}
             </h2>
-            <span class="text-sm text-ink-soft">
+            <span class="card-soft text-sm">
               {countFor(domain.data.slug)} libs
             </span>
           </div>
-          <p class="mt-2 text-sm text-ink-soft">{domain.data.blurb}</p>
+          <p class="card-soft mt-2 text-sm">{domain.data.blurb}</p>
         </a>
       ))
     }

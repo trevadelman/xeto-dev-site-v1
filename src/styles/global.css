@@ -5,12 +5,22 @@
   --color-brand: #6846cb;
   --color-brand-soft: #8b6fe0;
   --color-brand-faint: #efeafc;
+  /* deep purple chrome: header + hero band, both themes */
+  --color-nav: #241a47;
+  --color-nav-soft: #322659;
+  --color-nav-line: #453a73;
+  --color-nav-ink: #ffffff;
+  --color-nav-ink-soft: #beb3e4;
 
   --color-paper: #ffffff;
-  --color-paper-soft: #f7f6fb;
+  /* one visible step below the page tint so code wells read on lavender too */
+  --color-paper-soft: #dad3ec;
+  /* tinted page background — content surfaces stay paper-white on top.
+     deep enough to give three distinct levels: white / light purp / dark purp */
+  --color-page: #e5e0f2;
   --color-ink: #1c1a26;
-  --color-ink-soft: #5d5a6e;
-  --color-line: #e5e2ef;
+  --color-ink-soft: #4a4759;
+  --color-line: #d6d2e4;
 }
 
 /* dark theme overrides driven by [data-theme="dark"] on <html> */
@@ -21,11 +31,16 @@
   --color-brand-soft: #a78ff0;
   --color-brand-faint: #2a2140;
 
-  --color-paper: #14121c;
-  --color-paper-soft: #1c1927;
-  --color-ink: #edeaf6;
-  --color-ink-soft: #a29dba;
-  --color-line: #2e2a3e;
+  --color-nav: #1c1433;
+  --color-nav-soft: #2a2049;
+  --color-nav-line: #3d3163;
+
+  --color-paper: #1d1a29;
+  --color-paper-soft: #272238;
+  --color-page: #100e17;
+  --color-ink: #f2f0fa;
+  --color-ink-soft: #c2bdd8;
+  --color-line: #453f60;
 }
 
 html {
@@ -36,7 +51,7 @@ html[data-theme="dark"] {
 }
 
 body {
-  background-color: var(--color-paper);
+  background-color: var(--color-page);
   color: var(--color-ink);
 }
 
@@ -48,6 +63,131 @@ code {
   font-size: 0.875em;
 }
 
+/* card: the one card style used across the site — a paper surface one
+   gentle step off the page (like the hero code window), edged with a
+   border. Dark purple stays chrome-only: header, code title bar, buttons. */
+.card-brand {
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  background-color: var(--color-paper);
+  border: 1px solid var(--color-line);
+  color: var(--color-ink);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  transition: border-color 150ms, background-color 150ms, box-shadow 150ms;
+}
+.card-brand:hover {
+  border-color: var(--color-brand);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+.card-brand .card-soft { color: var(--color-ink-soft); }
+.card-brand .card-accent { color: var(--color-brand); }
+
+/* dark mode: brand border shift is subtler there, so hover lifts the
+   surface a step instead */
+[data-theme="dark"] .card-brand:hover { background-color: var(--color-paper-soft); }
+
+/* domain tags render as pills, not hyperlink-looking text */
+.card-brand .card-pill {
+  display: inline-block;
+  border-radius: 9999px;
+  padding: 0.15rem 0.65rem;
+  font-size: 0.75rem;
+  background-color: var(--color-brand-faint);
+  color: var(--color-brand);
+}
+
+/* hero window tabs: model -> publish -> install story in the code window's
+   title bar. The active tab carries a thin brand underline that fills over
+   the auto-advance interval (animation restarted from JS). */
+.hero-tab {
+  position: relative;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.375rem 0.375rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--color-nav-ink-soft);
+  cursor: pointer;
+  transition: color 150ms, background-color 150ms;
+}
+/* three distinct states: idle = quiet text; hover = bright text + faint
+   underline; active = filled pill + persistent brand underline */
+.hero-tab:hover { color: var(--color-nav-ink); box-shadow: inset 0 -2px 0 var(--color-nav-line); }
+.hero-tab[aria-selected="true"] {
+  color: var(--color-nav-ink);
+  font-weight: 600;
+  background-color: var(--color-nav-soft);
+  box-shadow: inset 0 -2px 0 var(--color-brand-soft);
+}
+.hero-tab .tab-progress {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 2px;
+  background-color: var(--color-nav-ink);
+  opacity: 0.6;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.hero-tab[aria-selected="true"] .tab-progress.run {
+  animation: tab-fill var(--tab-interval, 5000ms) linear forwards;
+}
+@keyframes tab-fill { to { transform: scaleX(1); } }
+
+/* panels stack in one grid cell and cross-fade; hidden ones stay in the
+   layout (so the window keeps the tallest panel's height) but can't be
+   interacted with */
+.hero-panel {
+  opacity: 1;
+  transition: opacity 300ms ease;
+}
+.hero-panel.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 300ms ease, visibility 0s 300ms;
+}
+
+/* typewriter cursor: blinking block that trails the typing */
+.tw-cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.1em;
+  vertical-align: text-bottom;
+  background-color: var(--color-brand);
+  animation: tw-blink 1s steps(2) infinite;
+}
+@keyframes tw-blink { 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-tab .tab-progress { display: none; }
+  .hero-panel, .hero-panel.is-hidden { transition: none; }
+  .tw-cursor { display: none; }
+}
+
+/* data table: the one table style used across the site — white surface
+   container with a soft header band. Cells keep utility classes for
+   per-column tweaks (mono, soft text, links). */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-line);
+  background-color: var(--color-paper);
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+.data-table { width: 100%; font-size: 0.875rem; text-align: left; }
+.data-table thead tr {
+  border-bottom: 1px solid var(--color-line);
+  background-color: var(--color-paper-soft);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: var(--color-ink-soft);
+}
+.data-table th { padding: 0.625rem 1rem; font-weight: 600; }
+.data-table td { padding: 0.75rem 1rem; }
+.data-table tbody tr { border-bottom: 1px solid var(--color-line); }
+.data-table tbody tr:last-child { border-bottom: 0; }
+.data-table tbody tr:hover { background-color: var(--color-paper-soft); }
+
 /* lib tables collapse to stacked cards below md */
 @media (max-width: 47.9rem) {
   .lib-table thead { display: none; }
@@ -57,7 +197,8 @@ code {
   .lib-table td { padding: 0.15rem 0; }
 }
 
-/* rendered-markdown articles (language docs) */
+/* rendered-markdown articles (language docs) — long-form reading uses
+   full-contrast ink; soft ink is for captions and summaries, not articles */
 .prose-docs {
   color: var(--color-ink);
   line-height: 1.7;
@@ -65,8 +206,8 @@ code {
 .prose-docs h1 { font-size: 1.9rem; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 1rem; }
 .prose-docs h2 { font-size: 1.35rem; font-weight: 650; margin: 2.25rem 0 0.75rem; }
 .prose-docs h3 { font-size: 1.1rem; font-weight: 650; margin: 1.75rem 0 0.5rem; }
-.prose-docs p { margin: 0.75rem 0; color: var(--color-ink-soft); }
-.prose-docs li { color: var(--color-ink-soft); margin: 0.3rem 0; }
+.prose-docs p { margin: 0.75rem 0; }
+.prose-docs li { margin: 0.3rem 0; }
 .prose-docs ul { list-style: disc; padding-left: 1.5rem; margin: 0.75rem 0; }
 .prose-docs ol { list-style: decimal; padding-left: 1.5rem; margin: 0.75rem 0; }
 .prose-docs a { color: var(--color-brand); }
@@ -84,7 +225,6 @@ code {
   border-left: 3px solid var(--color-line);
   margin: 1rem 0;
   padding-left: 1rem;
-  color: var(--color-ink-soft);
 }
 .prose-docs table {
   border-collapse: collapse;

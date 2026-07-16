@@ -2,6 +2,10 @@
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 
+// One unified list: curated libs render at build time (instant paint,
+// SEO), then the client script appends anything else the registry API
+// knows about into the same table/grid. The curated/registry split is
+// an implementation detail — users just see "the libraries".
 const libs = (await getCollection("libs")).sort((a, b) =>
   a.data.name.localeCompare(b.data.name),
 );
@@ -13,37 +17,82 @@ const libs = (await getCollection("libs")).sort((a, b) =>
     Every library in the registry. Click through for details and spec-level
     browsing in the explorer.
   </p>
-  <div class="mt-6">
-    <input
-      id="lib-filter"
-      type="search"
-      placeholder="Filter libraries…"
-      autocomplete="off"
-      class="w-full max-w-sm rounded-lg border border-line bg-paper px-3.5 py-2 text-sm placeholder:text-ink-soft focus:border-brand focus:outline-none"
-    />
+
+  <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center gap-2">
+      <input
+        id="lib-filter"
+        type="search"
+        placeholder="Type to search, or click a category…"
+        autocomplete="off"
+        class="w-64 rounded-lg border border-line bg-paper px-3.5 py-2 text-sm placeholder:text-ink-soft focus:border-brand focus:outline-none sm:w-80"
+      />
+      <!-- quick-search pills seed the input -->
+      <div class="flex flex-wrap gap-2" id="filter-pills">
+        {
+          ["ph", "sys", "elec", "doc"].map((p) => (
+            <button
+              type="button"
+              data-pill={p}
+              class="rounded-full border border-line bg-paper px-3 py-1 font-mono text-xs text-ink-soft hover:border-brand hover:text-brand"
+            >
+              {p}
+            </button>
+          ))
+        }
+      </div>
+    </div>
+    <!-- table/cards view toggle; choice persists in localStorage -->
+    <div class="flex overflow-hidden rounded-lg border border-line bg-paper" role="group" aria-label="View">
+      <button
+        id="view-table"
+        type="button"
+        aria-label="Table view"
+        class="flex h-9 w-9 items-center justify-center text-ink-soft hover:text-brand"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+          <path d="M2.5 4h11M2.5 8h11M2.5 12h11" />
+        </svg>
+      </button>
+      <button
+        id="view-cards"
+        type="button"
+        aria-label="Card view"
+        class="flex h-9 w-9 items-center justify-center border-l border-line text-ink-soft hover:text-brand"
+      >
+        <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1" />
+          <rect x="9" y="2.5" width="4.5" height="4.5" rx="1" />
+          <rect x="2.5" y="9" width="4.5" height="4.5" rx="1" />
+          <rect x="9" y="9" width="4.5" height="4.5" rx="1" />
+        </svg>
+      </button>
+    </div>
   </div>
-  <div class="mt-4 overflow-hidden rounded-lg border border-line">
-    <table class="lib-table w-full text-sm">
+
+  <!-- table view -->
+  <div id="table-view" class="table-wrap mt-4">
+    <table class="data-table lib-table">
       <thead>
-        <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
-          <th class="px-4 py-2.5 font-semibold">Library</th>
-          <th class="px-4 py-2.5 font-semibold">Version</th>
-          <th class="px-4 py-2.5 font-semibold">Summary</th>
-          <th class="px-4 py-2.5 font-semibold">Domain</th>
+        <tr>
+          <th>Library</th>
+          <th>Version</th>
+          <th>Summary</th>
+          <th>Domain</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody id="table-rows">
         {
           libs.map((lib) => (
-            <tr class="border-b border-line last:border-b-0 hover:bg-paper-soft">
-              <td class="px-4 py-3">
+            <tr data-lib-row data-name={lib.data.name}>
+              <td>
                 <a href={`/libs/${lib.id}`} class="font-mono font-medium text-brand hover:underline">
                   {lib.data.name}
                 </a>
               </td>
-              <td class="px-4 py-3 font-mono text-ink-soft">{lib.data.version}</td>
-              <td class="px-4 py-3 text-ink-soft">{lib.data.summary}</td>
-              <td class="px-4 py-3">
+              <td class="font-mono text-ink-soft">{lib.data.version}</td>
+              <td class="text-ink-soft">{lib.data.summary}</td>
+              <td>
                 {lib.data.domains.map((d) => (
                   <a href={`/domains/${d}`} class="text-xs text-brand hover:underline">
                     {d}
@@ -60,82 +109,113 @@ const libs = (await getCollection("libs")).sort((a, b) =>
     </p>
   </div>
 
-  <!-- community libs, live from the registry API — no rebuild needed -->
-  <section id="registry-section" class="mt-10 hidden">
-    <h2 class="text-xl font-semibold">From the registry</h2>
-    <p class="mt-1 text-sm text-ink-soft">
-      Community-published libraries, live from the xeto.dev registry.
-    </p>
-    <div class="mt-4 overflow-hidden rounded-lg border border-line">
-      <table class="lib-table w-full text-sm">
-        <thead>
-          <tr class="border-b border-line bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-soft">
-            <th class="px-4 py-2.5 font-semibold">Library</th>
-            <th class="px-4 py-2.5 font-semibold">Version</th>
-            <th class="px-4 py-2.5 font-semibold">Summary</th>
-            <th class="px-4 py-2.5 font-semibold">Downloads</th>
-          </tr>
-        </thead>
-        <tbody id="registry-rows"></tbody>
-      </table>
-    </div>
-  </section>
+  <!-- card view (hidden until chosen) -->
+  <div id="card-view" class="mt-4 hidden grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {
+      libs.map((lib) => (
+        <a
+          href={`/libs/${lib.id}`}
+          data-lib-row
+          data-name={lib.data.name}
+          class="card-brand block"
+        >
+          <div class="flex items-baseline justify-between gap-2">
+            <h3 class="break-all font-mono font-semibold">{lib.data.name}</h3>
+            <span class="card-soft font-mono text-xs">v{lib.data.version}</span>
+          </div>
+          <p class="card-soft mt-2 text-sm">{lib.data.summary}</p>
+          {lib.data.domains.length > 0 && (
+            <p class="card-accent mt-3 text-xs">{lib.data.domains.join(", ")}</p>
+          )}
+        </a>
+      ))
+    }
+  </div>
 
   <script>
     import { searchLibs, esc } from "../../lib/registry";
 
-    // registry libs not already covered by a static curated page
+    const el = (id: string) => document.getElementById(id)!;
+
+    // ---- view toggle -----------------------------------------------------
+    const views = { table: el("table-view"), cards: el("card-view") };
+    const btns = { table: el("view-table"), cards: el("view-cards") };
+    function setView(v: "table" | "cards") {
+      views.table.classList.toggle("hidden", v !== "table");
+      views.cards.classList.toggle("hidden", v !== "cards");
+      btns.table.classList.toggle("bg-paper-soft", v === "table");
+      btns.table.classList.toggle("text-brand", v === "table");
+      btns.cards.classList.toggle("bg-paper-soft", v === "cards");
+      btns.cards.classList.toggle("text-brand", v === "cards");
+      localStorage.setItem("libs_view", v);
+    }
+    btns.table.addEventListener("click", () => setView("table"));
+    btns.cards.addEventListener("click", () => setView("cards"));
+    setView(localStorage.getItem("libs_view") === "table" ? "table" : "cards");
+
+    // ---- merge in registry libs not covered by a curated static page ----
     const staticNames = new Set(
-      [...document.querySelectorAll("tbody a[href^='/libs/']")].map(
-        (a) => a.textContent!.trim(),
+      [...document.querySelectorAll<HTMLElement>("[data-lib-row]")].map(
+        (r) => r.dataset.name!,
       ),
     );
-    const section = document.getElementById("registry-section")!;
-    const tbody = document.getElementById("registry-rows")!;
 
-    function render(libs: { name: string; version: string; doc: string; downloads: number }[]) {
-      const rows = libs.filter((l) => !staticNames.has(l.name));
-      tbody.innerHTML = rows
-        .map(
-          (l) => `
-        <tr class="border-b border-line last:border-b-0 hover:bg-paper-soft">
-          <td class="px-4 py-3"><a href="/lib/${encodeURIComponent(l.name)}" class="font-mono font-medium text-brand hover:underline">${esc(l.name)}</a></td>
-          <td class="px-4 py-3 font-mono text-ink-soft">${esc(l.version)}</td>
-          <td class="px-4 py-3 text-ink-soft">${esc(l.doc)}</td>
-          <td class="px-4 py-3 text-ink-soft">${l.downloads}</td>
-        </tr>`,
-        )
-        .join("");
-      section.classList.toggle("hidden", rows.length === 0);
+    function addRegistryLibs(libs: { name: string; version: string; doc: string }[]) {
+      const fresh = libs.filter((l) => !staticNames.has(l.name));
+      for (const l of fresh) {
+        staticNames.add(l.name);
+        const href = `/lib/${encodeURIComponent(l.name)}`;
+
+        const tr = document.createElement("tr");
+        tr.dataset.libRow = "";
+        tr.dataset.name = l.name;
+        tr.innerHTML = `
+          <td><a href="${href}" class="font-mono font-medium text-brand hover:underline">${esc(l.name)}</a></td>
+          <td class="font-mono text-ink-soft">${esc(l.version)}</td>
+          <td class="text-ink-soft">${esc(l.doc)}</td>
+          <td></td>`;
+        el("table-rows").appendChild(tr);
+
+        const card = document.createElement("a");
+        card.href = href;
+        card.dataset.libRow = "";
+        card.dataset.name = l.name;
+        card.className = "card-brand block";
+        card.innerHTML = `
+          <div class="flex items-baseline justify-between gap-2">
+            <h3 class="break-all font-mono font-semibold">${esc(l.name)}</h3>
+            <span class="card-soft font-mono text-xs">v${esc(l.version)}</span>
+          </div>
+          <p class="card-soft mt-2 text-sm">${esc(l.doc)}</p>`;
+        el("card-view").appendChild(card);
+      }
+      if (fresh.length > 0) applyFilter();
     }
 
-    searchLibs().then((res) => render(res.libs)).catch(() => {});
+    searchLibs().then((res) => addRegistryLibs(res.libs)).catch(() => {});
 
-    // search box also queries the registry (debounced)
-    const filterInput = document.getElementById("lib-filter") as HTMLInputElement;
-    let timer: number | undefined;
-    filterInput.addEventListener("input", () => {
-      clearTimeout(timer);
-      timer = window.setTimeout(() => {
-        searchLibs(filterInput.value.trim()).then((res) => render(res.libs)).catch(() => {});
-      }, 250);
-    });
-  </script>
-
-  <script>
-    // client-side filter over the static table — matches name, summary, domain
-    const input = document.getElementById("lib-filter") as HTMLInputElement;
-    const rows = [...document.querySelectorAll<HTMLTableRowElement>("tbody tr")];
-    const empty = document.getElementById("lib-empty")!;
-    input.addEventListener("input", () => {
+    // ---- filter over the unified set (both views share data-lib-row) ----
+    const input = el("lib-filter") as HTMLInputElement;
+    function applyFilter() {
       const q = input.value.trim().toLowerCase();
       let shown = 0;
-      for (const row of rows) {
+      for (const row of document.querySelectorAll<HTMLElement>("[data-lib-row]")) {
         const hit = row.textContent!.toLowerCase().includes(q);
         row.hidden = !hit;
         if (hit) shown++;
       }
-      empty.classList.toggle("hidden", shown > 0);
-    });
+      // both views hold the same set, so shown is doubled — any hit shows
+      el("lib-empty").classList.toggle("hidden", shown > 0);
+    }
+    input.addEventListener("input", applyFilter);
+
+    // pills seed the search box; clicking the active pill clears it
+    document.querySelectorAll<HTMLButtonElement>("[data-pill]").forEach((b) =>
+      b.addEventListener("click", () => {
+        input.value = input.value === b.dataset.pill ? "" : b.dataset.pill!;
+        applyFilter();
+        input.focus();
+      }),
+    );
   </script>
 </BaseLayout>

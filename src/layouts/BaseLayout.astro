@@ -6,6 +6,12 @@ import { getCollection } from "astro:content";
 // falling back to the live-registry /lib/{name} page for anything newer
 const staticLibNames = (await getCollection("libs")).map((l) => l.data.name);
 
+// domains are a small static set — searched client-side in the palette
+const domains = (await getCollection("domains")).map((d) => ({
+  slug: d.data.slug,
+  name: d.data.name,
+}));
+
 interface Props {
   title: string;
   description?: string;
@@ -16,7 +22,8 @@ const { title, description = "xeto.dev — the registry for Xeto typed-data libr
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 // nav groups render as hover/click dropdowns; plain items as direct links
-const nav = [
+type NavItem = { label: string; href?: string; items?: { href: string; label: string }[] };
+const nav: NavItem[] = [
   {
     label: "Browse",
     items: [
@@ -30,9 +37,9 @@ const nav = [
     items: [
       { href: "/learn", label: "Xeto 101" },
       { href: "/docs/lang", label: "Docs" },
+      { href: "/explorer/", label: "Explorer" },
     ],
   },
-  { href: "/explorer/", label: "Explorer" },
 ];
 
 // active section for nav highlighting, e.g. /libs/ph -> /libs
@@ -40,6 +47,9 @@ const path = Astro.url.pathname;
 const isActive = (href: string) =>
   path === href || path.startsWith(href.replace(/\/$/, "") + "/") || path === href.replace(/\/$/, "");
 const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(i.href));
+
+// home page owns search in its hero — hide the redundant header box there
+const isHome = path === "/";
 
 ---
 
@@ -67,22 +77,43 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
     </script>
   </head>
   <body class="flex min-h-dvh flex-col font-sans antialiased">
-    <header class="sticky top-0 z-20 border-b border-line bg-paper/85 backdrop-blur">
-      <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <a href="/" class="flex items-center gap-2 font-semibold tracking-tight">
-          <img src="/xeto-logo.png" alt="" class="h-7 w-7 rounded" />
-          <span>xeto<span class="text-brand">.dev</span></span>
+    <header class="sticky top-0 z-20 bg-nav text-nav-ink">
+      <div class="mx-auto flex max-w-6xl items-center gap-6 px-6 py-4">
+        <!-- wordmark aligns to the content margin (same left edge as the
+             search bar below); the mammoth hangs out into the gutter on
+             sm+ and tucks back inline on mobile where there's no gutter -->
+        <a href="/" class="flex shrink-0 items-center gap-3 text-3xl font-bold tracking-tight">
+          <img src="/xeto-logo-nav.png" alt="" class="-my-2 h-12 w-auto sm:ml-[clamp(-3.4rem,calc((72rem-100vw)/2),0rem)]" />
+          <span>xeto<span class="text-brand-soft">.dev</span></span>
         </a>
-        <div class="flex items-center gap-3">
-          <nav class="hidden items-center gap-5 text-sm sm:flex">
+
+        <!-- search sits between logo and nav, stretching to fill; the home
+             page hero owns search there so the header box is hidden -->
+        {!isHome && (
+          <button
+            id="search-toggle"
+            type="button"
+            aria-label="Search"
+            class="hidden h-9 max-w-md flex-1 items-center gap-2 rounded-lg border border-nav-line bg-nav-soft px-3 text-nav-ink-soft transition hover:border-brand-soft hover:text-nav-ink sm:flex"
+          >
+            <svg class="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <circle cx="7" cy="7" r="4.5" />
+              <path d="m10.5 10.5 3 3" />
+            </svg>
+            <span class="flex-1 text-left text-sm">Click or press <kbd class="rounded border border-nav-line px-1 font-mono text-xs">/</kbd> to search</span>
+          </button>
+        )}
+
+        <div class="ml-auto flex items-center gap-3">
+          <nav class="hidden items-center gap-6 text-base sm:flex">
             {nav.map((item) =>
               item.items ? (
                 <div class="group relative" data-dropdown>
                   <span
                     data-dropdown-trigger
                     class:list={[
-                      "flex cursor-default select-none items-center gap-1.5 py-1 hover:text-brand",
-                      isGroupActive(item.items) ? "font-medium text-brand" : "text-ink-soft",
+                      "flex cursor-default select-none items-center gap-1.5 py-1 hover:text-nav-ink",
+                      isGroupActive(item.items) ? "font-medium text-nav-ink" : "text-nav-ink-soft",
                     ]}
                   >
                     {item.label}
@@ -123,8 +154,8 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
                 <a
                   href={item.href}
                   class:list={[
-                    "hover:text-brand",
-                    isActive(item.href!) ? "font-medium text-brand" : "text-ink-soft",
+                    "hover:text-nav-ink",
+                    isActive(item.href!) ? "font-medium text-nav-ink" : "text-nav-ink-soft",
                   ]}
                 >
                   {item.label}
@@ -132,22 +163,25 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
               ),
             )}
           </nav>
-          <button
-            id="search-toggle"
-            type="button"
-            aria-label="Search libraries"
-            class="flex h-8 w-8 items-center justify-center rounded border border-line text-ink-soft transition hover:border-brand hover:text-brand"
-          >
-            <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
-              <circle cx="7" cy="7" r="4.5" />
-              <path d="m10.5 10.5 3 3" />
-            </svg>
-          </button>
+          <!-- mobile-only search icon (the flexible box above is sm+) -->
+          {!isHome && (
+            <button
+              data-search-open
+              type="button"
+              aria-label="Search"
+              class="flex h-8 w-8 items-center justify-center rounded border border-nav-line text-nav-ink-soft transition hover:border-brand-soft hover:text-nav-ink sm:hidden"
+            >
+              <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                <circle cx="7" cy="7" r="4.5" />
+                <path d="m10.5 10.5 3 3" />
+              </svg>
+            </button>
+          )}
 
           <a
             id="session-indicator"
             href="/account"
-            class="invisible hidden h-8 items-center gap-1.5 whitespace-nowrap rounded border border-line px-2.5 text-sm text-ink-soft transition hover:border-brand hover:text-brand sm:flex"
+            class="invisible hidden h-9 items-center gap-1.5 whitespace-nowrap rounded border border-nav-line px-3 text-base text-nav-ink-soft transition hover:border-brand-soft hover:text-nav-ink sm:flex"
           ></a>
 
 
@@ -156,7 +190,7 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
             type="button"
             aria-label="Open menu"
             aria-expanded="false"
-            class="flex h-8 w-8 items-center justify-center rounded border border-line text-ink-soft transition hover:border-brand hover:text-brand sm:hidden"
+            class="flex h-8 w-8 items-center justify-center rounded border border-nav-line text-nav-ink-soft transition hover:border-brand-soft hover:text-nav-ink sm:hidden"
           >
             <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
               <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" />
@@ -168,13 +202,13 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
       <!-- mobile nav panel: overlays content below the sticky header -->
       <nav
         id="mobile-nav"
-        class="absolute inset-x-0 top-full hidden border-b border-t border-line bg-paper pb-3 shadow-lg shadow-black/5 sm:hidden"
+        class="absolute inset-x-0 top-full hidden border-b border-t border-nav-line bg-nav pb-3 shadow-lg shadow-black/20 sm:hidden"
       >
 
         {nav.map((item) =>
           item.items ? (
             <div>
-              <p class="px-6 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+              <p class="px-6 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-nav-ink-soft">
                 {item.label}
               </p>
               {item.items.map((sub) => (
@@ -182,7 +216,7 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
                   href={sub.href}
                   class:list={[
                     "block px-6 py-2 text-sm",
-                    isActive(sub.href) ? "font-medium text-brand" : "text-ink-soft",
+                    isActive(sub.href) ? "font-medium text-nav-ink" : "text-nav-ink-soft",
                   ]}
                 >
                   {sub.label}
@@ -194,7 +228,7 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
               href={item.href}
               class:list={[
                 "block px-6 py-3 text-sm",
-                isActive(item.href!) ? "font-medium text-brand" : "text-ink-soft",
+                isActive(item.href!) ? "font-medium text-nav-ink" : "text-nav-ink-soft",
               ]}
             >
               {item.label}
@@ -205,8 +239,8 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
           id="mobile-account-link"
           href="/account"
           class:list={[
-            "block border-t border-line px-6 py-3 text-sm",
-            isActive("/account") ? "font-medium text-brand" : "text-ink-soft",
+            "block border-t border-nav-line px-6 py-3 text-sm",
+            isActive("/account") ? "font-medium text-nav-ink" : "text-nav-ink-soft",
           ]}
         >
           Account
@@ -219,20 +253,21 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
       <slot />
     </main>
 
-    <footer class="mt-auto border-t border-line">
+    <!-- footer mirrors the header chrome, bookending every page -->
+    <footer class="mt-auto bg-nav text-nav-ink-soft">
       <div
-        class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-8 text-left text-sm text-ink-soft"
+        class="mx-auto flex max-w-6xl flex-col-reverse items-center justify-between gap-3 px-6 py-4 text-center text-sm sm:flex-row sm:text-left"
       >
         <p>&copy; {new Date().getFullYear()} XetoBase™. All rights reserved.</p>
         <div class="flex items-center gap-4">
-          <a href="/about" class="hover:text-brand">About</a>
-          <a href="/contact" class="hover:text-brand">Contact</a>
-          <a href="/legal" class="hover:text-brand">Terms</a>
+          <a href="/about" class="hover:text-nav-ink">About</a>
+          <a href="/contact" class="hover:text-nav-ink">Contact</a>
+          <a href="/legal" class="hover:text-nav-ink">Terms</a>
           <button
             id="theme-toggle"
             type="button"
             aria-label="Toggle theme"
-            class="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-line text-ink-soft transition hover:border-brand hover:text-brand"
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded border border-nav-line text-nav-ink-soft transition hover:border-brand-soft hover:text-nav-ink"
           >
             <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
               <circle cx="8" cy="8" r="5.5" />
@@ -254,7 +289,7 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
           <input
             id="search-input"
             type="text"
-            placeholder="Search libraries…"
+            placeholder="Type to search libraries, domains, and orgs…"
             autocomplete="off"
             class="w-full border-b border-line bg-transparent px-4 py-3 text-sm outline-none placeholder:text-ink-soft"
           />
@@ -300,14 +335,15 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
     </script>
 
 
-    <script define:vars={{ staticLibNames }} is:inline>
+    <script define:vars={{ staticLibNames, domains }} is:inline>
       // exposed for the module script below (Astro define:vars only works
       // on inline scripts)
       window.__staticLibs = new Set(staticLibNames);
+      window.__domains = domains;
     </script>
 
     <script>
-      import { searchLibs, esc } from "../lib/registry";
+      import { searchLibs, orgList, esc } from "../lib/registry";
       import { session, me, cachedWho } from "../lib/session";
 
       const staticLibs: Set<string> = (window as any).__staticLibs ?? new Set();
@@ -341,14 +377,38 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
       function openSearch() {
         backdrop.classList.remove("hidden");
         input.value = "";
-        results.innerHTML = "";
+        renderStarters();
         input.focus();
+      }
+
+      // empty state: starter pills to get people going
+      const starters = ["ph", "sys", "elec", "doc"];
+      function renderStarters() {
+        results.innerHTML = `
+          <div class="flex flex-wrap gap-2 px-4 py-3">
+            <span class="py-1 text-xs text-ink-soft">Try:</span>
+            ${starters
+              .map(
+                (s) =>
+                  `<button data-starter="${s}" class="rounded-full border border-line px-3 py-1 font-mono text-xs text-ink-soft hover:border-brand hover:text-brand">${s}</button>`,
+              )
+              .join("")}
+            <a href="/libs" class="rounded-full border border-line px-3 py-1 text-xs text-ink-soft hover:border-brand hover:text-brand">browse all →</a>
+          </div>`;
+        results.querySelectorAll<HTMLButtonElement>("[data-starter]").forEach((b) =>
+          b.addEventListener("click", () => {
+            input.value = b.dataset.starter!;
+            input.dispatchEvent(new Event("input"));
+            input.focus();
+          }),
+        );
       }
       function closeSearch() {
         backdrop.classList.add("hidden");
       }
 
       document.getElementById("search-toggle")?.addEventListener("click", openSearch);
+      document.querySelectorAll("[data-search-open]").forEach((b) => b.addEventListener("click", openSearch));
       backdrop.addEventListener("click", (e) => {
         if (e.target === backdrop) closeSearch();
       });
@@ -380,26 +440,78 @@ const isGroupActive = (items: { href: string }[]) => items.some((i) => isActive(
         }
       });
 
+      // domains are static; orgs fetched once per page load on first search
+      const domains: { slug: string; name: string }[] = (window as any).__domains ?? [];
+      let orgsCache: { name: string; description: string }[] | null = null;
+      async function orgs() {
+        if (!orgsCache) {
+          orgsCache = await orgList()
+            .then((r) => r.orgs)
+            .catch(() => []);
+        }
+        return orgsCache!;
+      }
+
+      const groupHeader = (label: string) =>
+        `<p class="px-4 pb-1 pt-2.5 text-xs font-semibold uppercase tracking-wide text-ink-soft">${label}</p>`;
+
       input.addEventListener("input", () => {
         clearTimeout(debounce);
         const q = input.value.trim();
-        if (!q) { results.innerHTML = ""; return; }
+        if (!q) { renderStarters(); return; }
         active = -1;
         debounce = window.setTimeout(async () => {
-          const { libs } = await searchLibs(q, 8);
-          results.innerHTML =
-            libs.length === 0
-              ? `<p class="px-4 py-3 text-sm text-ink-soft">No libraries match &ldquo;${q.replace(/</g, "&lt;")}&rdquo;</p>`
-              : libs
-                  .map(
-                    (l) => `
+          const ql = q.toLowerCase();
+          const [{ libs }, allOrgs] = await Promise.all([searchLibs(q, 8), orgs()]);
+          const domainHits = domains.filter(
+            (d) => d.name.toLowerCase().includes(ql) || d.slug.includes(ql),
+          );
+          const orgHits = allOrgs
+            .filter(
+              (o) =>
+                o.name.toLowerCase().includes(ql) ||
+                (o.description ?? "").toLowerCase().includes(ql),
+            )
+            .slice(0, 4);
+
+          let html = "";
+          if (libs.length > 0) {
+            html += groupHeader("Libraries");
+            html += libs
+              .map(
+                (l) => `
             <a href="${libHref(l.name)}" class="mx-1.5 block rounded px-3 py-2 hover:bg-paper-soft">
               <span class="font-mono text-sm font-medium text-brand">${esc(l.name)}</span>
               <span class="ml-2 font-mono text-xs text-ink-soft">${esc(l.version)}</span>
               <p class="mt-0.5 truncate text-xs text-ink-soft">${esc(l.doc)}</p>
             </a>`,
-                  )
-                  .join("");
+              )
+              .join("");
+          }
+          if (domainHits.length > 0) {
+            html += groupHeader("Domains");
+            html += domainHits
+              .map(
+                (d) => `
+            <a href="/domains/${esc(d.slug)}" class="mx-1.5 block rounded px-3 py-2 text-sm hover:bg-paper-soft">${esc(d.name)}</a>`,
+              )
+              .join("");
+          }
+          if (orgHits.length > 0) {
+            html += groupHeader("Organizations");
+            html += orgHits
+              .map(
+                (o) => `
+            <a href="/orgs/${encodeURIComponent(o.name)}" class="mx-1.5 block rounded px-3 py-2 hover:bg-paper-soft">
+              <span class="text-sm font-medium">${esc(o.name)}</span>
+              <p class="mt-0.5 truncate text-xs text-ink-soft">${esc(o.description ?? "")}</p>
+            </a>`,
+              )
+              .join("");
+          }
+          results.innerHTML =
+            html ||
+            `<p class="px-4 py-3 text-sm text-ink-soft">No matches for &ldquo;${q.replace(/</g, "&lt;")}&rdquo;</p>`;
         }, 200);
       });
     </script>

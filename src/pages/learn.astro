@@ -5,7 +5,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 <BaseLayout title="Learn Xeto — xeto.dev">
   <h1 class="text-3xl font-bold tracking-tight">What is Xeto?</h1>
 
-  <div class="mt-6 max-w-3xl space-y-5 text-ink-soft">
+  <div class="mt-6 max-w-3xl space-y-5 text-ink">
     <p>
       <strong class="text-ink">Xeto</strong> ("extensible explicitly typed
       objects") is a language for defining typed data specifications. A Xeto
@@ -48,7 +48,7 @@ Book: Dict &#123;
 @dune: Book &#123;title: "Dune", author: "Frank Herbert", pages: 412&#125;</code></pre>
 
   <h2 class="mt-12 text-xl font-semibold">Why a spec language?</h2>
-  <div class="mt-4 max-w-3xl space-y-5 text-ink-soft">
+  <div class="mt-4 max-w-3xl space-y-5 text-ink">
     <p>
       Most data problems aren't really data problems — they're
       <em>agreement</em> problems. Two systems each hold perfectly good data
@@ -82,7 +82,7 @@ Book: Dict &#123;
   </div>
 
   <h2 class="mt-12 text-xl font-semibold">Where xeto.dev fits in</h2>
-  <div class="mt-4 max-w-3xl space-y-5 text-ink-soft">
+  <div class="mt-4 max-w-3xl space-y-5 text-ink">
     <p>
       A spec language is only as valuable as the specs people share. That's
       what this site is for: <strong class="text-ink">xeto.dev is the
@@ -102,30 +102,21 @@ Book: Dict &#123;
 
   <h2 class="mt-12 text-xl font-semibold">Go deeper</h2>
   <div class="mt-5 mb-6 grid gap-4 sm:grid-cols-3">
-    <a
-      href="/docs/lang"
-      class="group rounded-lg border border-line p-5 transition hover:border-brand"
-    >
-      <h3 class="font-semibold group-hover:text-brand">Language docs</h3>
-      <p class="mt-1 text-sm text-ink-soft">
+    <a href="/docs/lang" class="card-brand block">
+      <h3 class="font-semibold">Language docs</h3>
+      <p class="card-soft mt-1 text-sm">
         The complete reference, published from the doc.xeto library →
       </p>
     </a>
-    <a
-      href="/explorer/"
-      class="group rounded-lg border border-line p-5 transition hover:border-brand"
-    >
-      <h3 class="font-semibold group-hover:text-brand">The explorer</h3>
-      <p class="mt-1 text-sm text-ink-soft">
+    <a href="/explorer/" class="card-brand block">
+      <h3 class="font-semibold">The explorer</h3>
+      <p class="card-soft mt-1 text-sm">
         Browse every spec in the registry, live →
       </p>
     </a>
-    <a
-      href="https://github.com/Project-Haystack/xeto"
-      class="group rounded-lg border border-line p-5 transition hover:border-brand"
-    >
-      <h3 class="font-semibold group-hover:text-brand">GitHub</h3>
-      <p class="mt-1 text-sm text-ink-soft">
+    <a href="https://github.com/Project-Haystack/xeto" class="card-brand block">
+      <h3 class="font-semibold">GitHub</h3>
+      <p class="card-soft mt-1 text-sm">
         Source, core libraries, and issues →
       </p>
     </a>
